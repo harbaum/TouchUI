@@ -1,0 +1,9 @@
+[app]
+name: Power
+category: System
+author: Till Harbaum &lt;till@harbaum.org&gt;
+icon: icon.png
+desc: Powerdown or reboot
+exec: power.py
+managed: yes
+uuid: 4899c46c-eb5c-4ad3-90a6-949318d3aa4e

@@ -1,0 +1,24 @@
+; list of packages
+; this file contains all manifests
+
+[clock]
+name: Clock
+category: Tools
+icon: icon.png
+desc: A simple clock app
+exec: clock.py
+managed: yes
+uuid: 4fdef96d-4a27-4209-85c6-7786110d9f2f
+version: 1.0
+firmware: 0.9
+
+[calc]
+name: Calc
+category: Tools
+icon: icon.png
+desc: A simple calculator
+exec: calc.py
+managed: yes
+uuid: 2093ec3e-e85f-47cb-aebc-3809b482d145
+version: 1.0
+firmware: 0.9
