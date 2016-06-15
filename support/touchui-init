@@ -1,0 +1,65 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          touchui
+# Should-Start:      console-screen kbd acpid dbus hal consolekit
+# Required-Start:    $local_fs $remote_fs x11-common
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: TouchUI
+# Description:       Debian init script for the TouchUI
+### END INIT INFO
+#
+# Author:       Till Harbaum
+set -e
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/root/touchui/touchui
+
+test -x $DAEMON || exit 0
+
+if [ -r /etc/default/locale ]; then
+  . /etc/default/locale
+  export LANG LANGUAGE
+fi
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+       log_daemon_msg "Starting TouchUI" "touchui"
+       start-stop-daemon --start --quiet --pidfile /var/run/touchui.pid --name touchui --exec $DAEMON -b|| echo -n " already running"
+                log_end_msg $?
+  ;;
+  stop)
+        log_daemon_msg "Stopping TouchUI" "touchui"
+        set +e
+        start-stop-daemon --stop --quiet --pidfile /var/run/touchui.pid \
+                --name touchui --retry 5
+        set -e
+        log_end_msg $?
+  ;;
+  reload)
+        log_daemon_msg "Scheduling reload of TouchUI configuration" "touchui"
+        set +e
+        start-stop-daemon --stop --signal USR1 --quiet --pidfile \
+                /var/run/touchui.pid --name touchui
+        set -e
+        log_end_msg $?
+  ;;
+  status)
+        status_of_proc -p "$PIDFILE" "$DAEMON" touchui && exit 0 || exit $?
+  ;;
+  restart|force-reload)
+        $0 stop
+        sleep 1
+        $0 start
+  ;;
+  *)
+        echo "Usage: /etc/init.d/touchui {start|stop|restart|reload|force-reload|status}"
+        exit 1
+  ;;
+esac
+
+exit 0
+
