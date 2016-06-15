@@ -6,8 +6,8 @@ become a stand-alone GUI project aiming to create a simple yet useful
 user interface for small touch screen enabled devices like the
 Raspberry Pi using a display module add-on.
 
-[Launcher](https://raw.githubusercontent.com/harbaum/TouchUI/master/screenshots/launcher.png)
-
+![Launcher](https://raw.githubusercontent.com/harbaum/TouchUI/master/screenshots/launcher.png)
+           
 TouchUI is based on Python, Qt and PyQt. It runs on any device
 supporting these incl. the Raspberry Pi and the Fischertechnik TXT.
 It's designed for resultions from 240x320 to 480x320 / 320x480
