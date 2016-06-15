@@ -236,6 +236,10 @@ QPushButton:pressed {
     color: lightgrey;
 }
 
+QToolButton {
+    background-color: None;
+}
+
 QComboBox {
     border-style: outset;
     border-width: 4px;

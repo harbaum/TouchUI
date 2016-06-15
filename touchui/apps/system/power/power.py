@@ -14,6 +14,8 @@ class FtcGuiApplication(TouchApplication):
 
         self.vbox = QVBoxLayout()
 
+        self.vbox.addStretch()
+
         self.poweroff = QToolButton()
         self.poweroff.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.poweroff.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
@@ -25,6 +27,8 @@ class FtcGuiApplication(TouchApplication):
         self.poweroff.clicked.connect(self.on_poweroff)
         self.vbox.addWidget(self.poweroff)
 
+        self.vbox.addStretch()
+
         self.reboot = QToolButton()
         self.reboot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.reboot.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
@@ -35,6 +39,8 @@ class FtcGuiApplication(TouchApplication):
         self.reboot.setText("Reboot")
         self.reboot.clicked.connect(self.on_reboot)
         self.vbox.addWidget(self.reboot)
+
+        self.vbox.addStretch()
 
         self.w.centralWidget.setLayout(self.vbox)
 
