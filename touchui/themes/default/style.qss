@@ -25,6 +25,7 @@
 
 QListWidget {
      background-color: rgba(0,0,0,0);
+     alternate-background-color: rgba(0,0,0,16);
 }
 
 QScrollArea {

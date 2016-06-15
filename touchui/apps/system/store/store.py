@@ -204,7 +204,6 @@ class AppDialog(TouchDialog):
     labels = { "version": "Version",
                "desc": "Description",
                "author": "Author",
-               "firmware": "Firmware",
                "set": "Set",
                "model": "Model",
                "category": "Category"
@@ -369,6 +368,7 @@ class AppListWidget(QListWidget):
         self.setViewMode(QListView.ListMode)
         self.setMovement(QListView.Static)
         self.setIconSize(QSize(32,32))
+        self.setAlternatingRowColors(True)
 
         # scan for installed apps
         self.installed_apps = self.scan_installed_app_dirs()
