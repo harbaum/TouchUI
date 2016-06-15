@@ -94,7 +94,7 @@ class FtcGuiApplication(TouchApplication):
         self.vbox.addStretch()
         
         # and add some text
-        self.txt = QLabel("TouchStyle GUI")
+        self.txt = QLabel("TouchUI\n\nA lightweight UI for small touchscreens")
         self.txt.setObjectName("smalllabel")
         self.txt.setWordWrap(True)
         self.txt.setAlignment(Qt.AlignCenter)
@@ -102,7 +102,7 @@ class FtcGuiApplication(TouchApplication):
 
         self.vbox.addStretch()
 
-        self.c = QLabel("(c) 2016 Till Harbaum")
+        self.c = QLabel("(c) 2016 by Till Harbaum")
         self.c.setObjectName("tinylabel")
         self.c.setWordWrap(True)
         self.c.setAlignment(Qt.AlignCenter)
