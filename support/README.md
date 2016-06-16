@@ -1,16 +1,16 @@
 # Support files for TouchUI
 
 <dl>
-  <dt>`touchui-init`</dt>
+  <dt><tt>touchui-init</tt></dt>
   <dd>This init script is supposed to be placed
-    under `/etc/init.d/touchui`. Use `update-rc.d touchui defaults` to
-    create the required links. `touchui-init` will try to run a
-    file named `/root/touchui/touchui`.</dd>
+    under <tt>/etc/init.d/touchui</tt>. Use <tt>update-rc.d touchui defaults</tt> to
+    create the required links. <tt>touchui-init</tt> will try to run a
+    file named <tt>/root/touchui/touchui</tt>.</dd>
 
-  <dt>`touchui`</dt>
+  <dt><tt>touchui</tt></dt>
   <dd>This shell script is supposed to be placed under
-    `/root/touchui/touchui` and will be called by
-    `touchui-init`.  It will launch
-    `/root/touchui/launcher.py` and thus expects the whole
-    `touchui` directory to be placed under `/root`.</dd>
+    <tt>/root/touchui/touchui</tt> and will be called by
+    <tt>touchui-init</tt>.  It will launch
+    <tt>/root/touchui/launcher.py</tt> and thus expects the whole
+    <tt>touchui</tt> directory to be placed under <tt>/root</tt>.</dd>
 </dl>
