@@ -3,7 +3,7 @@
 <dl>
   <dt>`touchui-init`</dt>
   <dd>This init script is supposed to be placed
-    under `/etc/init.d`. Use `update-rc.d touchui defaults` to
+    under `/etc/init.d/touchui`. Use `update-rc.d touchui defaults` to
     create the required links. `touchui-init` will try to run a
     file named `/root/touchui/touchui`.</dd>
 
