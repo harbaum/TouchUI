@@ -393,13 +393,16 @@ class IconGrid(QWidget):
         button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         button.setProperty("executable", executable)
         button.setObjectName("launcher-icon")
+        button.setText(appname)
+
         if iconfile:
             pix = QPixmap(iconfile)
             button.setIcon(QIcon(pix))
             button.setIconSize(pix.size())
 
-        button.setText(appname)
-        button.clicked.connect(on_click)
+        if on_click:
+            button.clicked.connect(on_click)
+
         return button
 
     # add and icon to the grid. Remove any previous icon
