@@ -389,41 +389,18 @@ class IconGrid(QWidget):
 
     # create an icon with label
     def createIcon(self, iconfile=None, on_click=None, appname=None, executable=None):
-        # the icon consists of the icon and the text below in a vbox
-        vboxw = QWidget()
-        vbox = QVBoxLayout()
-        vbox.setSpacing(0)
-        vbox.setContentsMargins(0,0,0,0)
-        vboxw.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
+        button = QToolButton()
+        button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        button.setProperty("executable", executable)
+        button.setObjectName("launcher-icon")
         if iconfile:
             pix = QPixmap(iconfile)
-            icn = QIcon(pix)
-            but = QPushButton()
-            but.setIcon(icn)
-            but.setIconSize(pix.size())
-            but.clicked.connect(on_click)
-            # set properties from manifest settings on clickable icon to
-            # allow click event to launch the appropriate app
-            but.setProperty("executable", executable)
-            but.setFlat(True)
-        else:
-            but = QWidget()
+            button.setIcon(QIcon(pix))
+            button.setIconSize(pix.size())
 
-        but.setFixedSize(QSize(72,72))
-        but.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        vbox.addWidget(but)
-
-        lbl = QLabel(appname)
-        lbl.setObjectName("iconlabel")
-        lbl.setAlignment(Qt.AlignCenter)
-        lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        vbox.addWidget(lbl)
-
-        vboxw.setLayout(vbox)
-        
-        return vboxw
+        button.setText(appname)
+        button.clicked.connect(on_click)
+        return button
 
     # add and icon to the grid. Remove any previous icon
     def addIcon(self, w, index):

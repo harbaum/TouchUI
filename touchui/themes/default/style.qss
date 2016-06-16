@@ -68,6 +68,11 @@ QFrame#statusframe {
     padding: 5 10 5 10;
 }
 
+/* if a combobox is used as the titleabar then the padding changes */
+QComboBox#titlebar {
+    padding: 1 10 1 10;
+}
+
 QMenu {
     background: #448acc; 
     border: 2px outset lightgrey;
@@ -171,13 +176,6 @@ QLabel#tinylabel {
     color: white;
 }
 
-/* the label underneath a launcher icon */
-/* used by launcher */
-QLabel#iconlabel {
-    color: white;
-    font-size: 12px; 
-}
-
 /* textedit has a smaller font */
 QTextEdit {
     background: rgba(0,0,0,0); 
@@ -238,6 +236,11 @@ QPushButton:pressed {
 
 QToolButton {
     background-color: None;
+}
+
+QToolButton#launcher-icon {
+    font: bold 12px;
+    color: white;
 }
 
 QComboBox {
