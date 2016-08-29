@@ -697,6 +697,10 @@ class FtcGuiApplication(QApplication):
             while self.app_process.poll() == None:
                 pass
 
+            # give app a second to terminate
+            # fix for https://github.com/ftCommunity/ftcommunity-TXT/issues/50
+            time.sleep(1)
+
     # read a number of entries from the manifest and return them 
     # as a dictionary
     def manifest_import(self, manifest):

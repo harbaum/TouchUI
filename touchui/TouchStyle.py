@@ -8,12 +8,16 @@ import struct, os, platform, socket
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-# TXT values
-INPUT_EVENT_DEVICE = "/dev/input/event1"
-INPUT_EVENT_CODE = 116
+# enable special features for the FT-TXT
+TXT = False
 
-INPUT_EVENT_FORMAT = 'llHHI'
-INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FORMAT)
+if TXT:
+    # TXT values
+    INPUT_EVENT_DEVICE = "/dev/input/event1"
+    INPUT_EVENT_CODE = 116
+
+    INPUT_EVENT_FORMAT = 'llHHI'
+    INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FORMAT)
 
 STYLE_NAME = "themes/default/style.qss"
 
@@ -101,15 +105,17 @@ class TouchBaseWidget(QWidget):
             self.setFixedSize(size.width(), size.height())
         else:
             self.setFixedSize(WIN_WIDTH, WIN_HEIGHT)
+
         self.setObjectName("centralwidget")
-        self.subdialogs = []
 
-        # on arm (TXT) start thread to monitor power button
-        if platform.machine() == "armv7l":
-            self.buttonThread = ButtonThread()
-            self.connect( self.buttonThread, SIGNAL("power_button_released()"), self.close )
-            self.buttonThread.start()
+        if TXT:
+            self.subdialogs = []
 
+            # on arm (TXT) start thread to monitor power button
+            if platform.machine() == "armv7l":
+                self.buttonThread = ButtonThread()
+                self.connect( self.buttonThread, SIGNAL("power_button_released()"), self.close )
+                self.buttonThread.start()
             
         # TXT windows are always fullscreen on arm (txt itself)
         # and windowed else (e.g. on PC)
@@ -137,13 +143,17 @@ class TouchBaseWidget(QWidget):
             sock.close()
 
     def unregister(self,child):
-        self.subdialogs.remove(child)
+        if TXT:
+            self.subdialogs.remove(child)
 
     def register(self,child):
-        self.subdialogs.append(child)
+        if TXT:
+            self.subdialogs.append(child)
         
     def close(self):
-        for i in self.subdialogs: i.close()
+        if TXT:
+            for i in self.subdialogs: i.close()
+
         super(TouchBaseWidget, self).close()
 
 class TouchWindow(TouchBaseWidget):
@@ -179,18 +189,20 @@ class TouchDialog(QDialog):
         # for some odd reason the childern are not registered
         # as child windows on the txt
 
-        # search for a matching root parent widget
-        while parent and not (parent.inherits("TouchBaseWidget") or parent.inherits("TouchDialog")):
-            parent = parent.parent()
+        if TXT:
+            # search for a matching root parent widget
+            while parent and not (parent.inherits("TouchBaseWidget") or parent.inherits("TouchDialog")):
+                parent = parent.parent()
 
-        self.parent = parent
-        if parent:
-            parent.register(self)
+                self.parent = parent
+            if parent:
+                parent.register(self)
         
+            self.setParent(parent)
+
         # the setFixedSize is only needed for testing on a desktop pc
         # the centralwidget name makes sure the themes background 
         # gradient is being used
-        self.setParent(parent)
         if platform.machine() == "armv7l":
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
@@ -221,13 +233,15 @@ class TouchDialog(QDialog):
         return self.titlebar.addMenu()
 
     def unregister(self,child):
-        self.parent.unregister(child)
+        if TXT:
+            self.parent.unregister(child)
 
     def register(self,child):
-        self.parent.register(child)
+        if TXT:
+            self.parent.register(child)
 
     def close(self):
-        if self.parent:
+        if TXT and self.parent:
             self.parent.unregister(self)
 
         super(TouchDialog, self).close()
