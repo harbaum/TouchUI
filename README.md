@@ -32,11 +32,13 @@ Furthermore the touchscreen also needs to be rotated. This is done in the
 file `/etc/X11/xorg.conf.d/99-calibration.conf` by removing the `SwapAxes` option
 and by exachanging the Caöibration values of both axes:
 
+```
 Section "InputClass"
   Identifier   "calibration"
   MatchProduct "ADS7846 Touchscreen"
   Option       "Calibration" "300 3932 294 3801"
 EndSection
+```
 
 Afterwards the display and touchscreen should work as usual but in upright
 orientation.
@@ -83,8 +85,20 @@ After a reboot the TouchUI should show up.
 ## PC Demo
 
 The TouchUI can run an a PC inside a window. The launcher
-([touchui/launcher.py](https://github.com/harbaum/TouchUI/blob/master/touchui/launcher.py))
+([`touchui/launcher.py`](https://github.com/harbaum/TouchUI/blob/master/touchui/launcher.py))
 can just be started. If apps are being used the enironment variable
-PYTHONPATH needs to be set to the directory where
-[TouchStyle.py](https://github.com/harbaum/TouchUI/blob/master/touchui/TouchStyle.py)
+`PYTHONPATH` needs to be set to the directory where
+[`TouchStyle.py`](https://github.com/harbaum/TouchUI/blob/master/touchui/TouchStyle.py)
 is located.
+
+When run on a desktop PC the TouchUI runs inside a window. The
+size of this window can be changed. E.g. the command
+
+```
+SCREEN=480x320 ./launcher.py
+```
+
+will run the launcher inside a window of 320x480 pixels size:
+
+![Launcher in 320x480](https://raw.githubusercontent.com/harbaum/TouchUI/master/screenshots/launcher_320x480.png)
+           
