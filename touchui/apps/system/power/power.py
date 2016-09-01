@@ -17,6 +17,9 @@ class FtcGuiApplication(TouchApplication):
         self.vbox.addStretch()
 
         self.poweroff = QToolButton()
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(QPointF(3,3))
+        self.poweroff.setGraphicsEffect(shadow)
         self.poweroff.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.poweroff.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "powerdown"))
@@ -30,6 +33,9 @@ class FtcGuiApplication(TouchApplication):
         self.vbox.addStretch()
 
         self.reboot = QToolButton()
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(QPointF(3,3))
+        self.reboot.setGraphicsEffect(shadow)
         self.reboot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.reboot.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "reboot"))
