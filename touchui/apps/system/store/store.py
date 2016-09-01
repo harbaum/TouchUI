@@ -193,7 +193,7 @@ class PackageLoader(NetworkAccessManager):
         # get various fields from manifest
         executable = os.path.join(appdir, manifest.get('app', 'exec'))
         
-        print("Making executable: " + executable + "<br/>")
+        print("Making executable: " + executable)
         os.chmod(executable, 0o744)
 
         print("done")

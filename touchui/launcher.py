@@ -347,7 +347,7 @@ class TextmodeDialog(TouchDialog):
     def close(self):
         self.timer.stop()
         TouchDialog.close(self)
-        
+
         # the main icon grid
 class IconGrid(QWidget):
     def __init__(self, apps, cat):
@@ -390,6 +390,11 @@ class IconGrid(QWidget):
     # create an icon with label
     def createIcon(self, iconfile=None, on_click=None, appname=None, executable=None):
         button = QToolButton()
+
+        shadow = QGraphicsDropShadowEffect(button)
+        shadow.setOffset(QPointF(3,3))
+        button.setGraphicsEffect(shadow)
+
         button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         button.setProperty("executable", executable)
         button.setObjectName("launcher-icon")
