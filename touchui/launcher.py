@@ -63,8 +63,8 @@ class MessageDialog(QDialog):
 
 # The TXTs window title bar
 class CategoryWidget(QComboBox):
-    def __init__(self,categories):
-        QComboBox.__init__(self)
+    def __init__(self,categories, parent = None):
+        QComboBox.__init__(self, parent)
         self.setObjectName("titlebar")
         self.setCategories(categories)
         self.setContentsMargins(0,0,0,0)
@@ -129,6 +129,11 @@ class StatusPopup(QFrame):
         self.setLayout(vbox)
         self.adjustSize()
 
+        parent.main_widget.setGraphicsEffect(QGraphicsBlurEffect(parent))
+
+    def closeEvent(self, event):
+        self.parent().main_widget.setGraphicsEffect(None)
+
 class StatusBar(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -179,7 +184,7 @@ class StatusBar(QWidget):
     def update(self):
         self.repaint()
        
-# The TXT does not use windows. Instead we just paint custom 
+# The TXT/RPi does not use windows. Instead we just paint custom 
 # toplevel windows fullscreen
 class TouchTopWidget(QWidget):
     def __init__(self,parent,categories):
@@ -195,19 +200,28 @@ class TouchTopWidget(QWidget):
 
         self.setObjectName("centralwidget")
 
-        # create a vertical layout and put all widgets inside
+        # create a vertical layout for the statusbar
+        self.top_layout = QVBoxLayout()
+        self.top_layout.setSpacing(0)
+        self.top_layout.setContentsMargins(0,0,0,0)
+
+        self.statusbar = StatusBar(self)
+        self.top_layout.addWidget(self.statusbar)
+
+        # create a vertical layout for the main user interface
+        self.main_widget = QWidget()
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0,0,0,0)
 
-        self.statusbar = StatusBar(self)
-        self.layout.addWidget(self.statusbar)
-
-        self.category_w = CategoryWidget(categories)
+        self.category_w = CategoryWidget(categories, self.main_widget)
         self.category_w.activated[str].connect(parent.set_category)
         self.layout.addWidget(self.category_w)
+        self.main_widget.setLayout(self.layout)
 
-        self.setLayout(self.layout)
+        self.top_layout.addWidget(self.main_widget)
+
+        self.setLayout(self.top_layout)
 
     def setCategories(self, categories):
         return self.category_w.setCategories(categories)
