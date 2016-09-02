@@ -93,6 +93,14 @@ class FtcGuiApplication(TouchApplication):
 
         self.vbox.addStretch()
         
+        self.logo = QLabel("")
+        name = os.path.join(os.path.dirname(os.path.realpath(__file__)), "logo.png")
+        pix = QPixmap(name)
+        self.logo.setPixmap(pix)
+        
+        self.logo.setAlignment(Qt.AlignCenter)
+        self.vbox.addWidget(self.logo)
+
         # and add some text
         self.txt = QLabel("TouchUI\n\nA lightweight UI for small touchscreens")
         self.txt.setObjectName("smalllabel")
