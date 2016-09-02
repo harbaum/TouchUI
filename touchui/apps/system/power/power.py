@@ -5,6 +5,31 @@ import sys, os, socket
 from subprocess import call
 from TouchStyle import *
 
+# a toolbutton with drop shadow
+class ShadowButton(QToolButton):
+    def __init__(self, iconname):
+        QToolButton.__init__(self)
+
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(QPointF(3,3))
+        self.setGraphicsEffect(shadow)
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), iconname))
+        icon = QIcon(pix)
+        self.setIcon(icon)
+        self.setIconSize(pix.size())
+
+        # hide shadow while icon is pressed
+    def mousePressEvent(self, event):
+        self.graphicsEffect().setEnabled(False)
+        QToolButton.mousePressEvent(self,event)
+
+    def mouseReleaseEvent(self, event):
+        self.graphicsEffect().setEnabled(True)
+        QToolButton.mouseReleaseEvent(self,event)
+
 class FtcGuiApplication(TouchApplication):
     def __init__(self, args):
         TouchApplication.__init__(self, args)
@@ -16,26 +41,14 @@ class FtcGuiApplication(TouchApplication):
 
         self.vbox.addStretch()
 
-        self.poweroff = QToolButton()
-        self.poweroff.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.poweroff.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "powerdown"))
-        icon = QIcon(pix)
-        self.poweroff.setIcon(icon)
-        self.poweroff.setIconSize(pix.size())
+        self.poweroff = ShadowButton("powerdown")
         self.poweroff.setText("Power off")
         self.poweroff.clicked.connect(self.on_poweroff)
         self.vbox.addWidget(self.poweroff)
 
         self.vbox.addStretch()
 
-        self.reboot = QToolButton()
-        self.reboot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.reboot.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "reboot"))
-        icon = QIcon(pix)
-        self.reboot.setIcon(icon)
-        self.reboot.setIconSize(pix.size())
+        self.reboot = ShadowButton("reboot")
         self.reboot.setText("Reboot")
         self.reboot.clicked.connect(self.on_reboot)
         self.vbox.addWidget(self.reboot)

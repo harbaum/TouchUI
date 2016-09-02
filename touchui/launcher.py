@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-import sys, os, subprocess, threading, math
+import sys, os, subprocess, threading
 import socketserver, select
 
 from TouchStyle import *
@@ -348,6 +348,27 @@ class TextmodeDialog(TouchDialog):
         self.timer.stop()
         TouchDialog.close(self)
 
+        # a toolbutton with drop shadow
+class AppButton(QToolButton):
+    def __init__(self):
+        QToolButton.__init__(self)
+
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(QPointF(3,3))
+        self.setGraphicsEffect(shadow)
+
+        self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.setObjectName("launcher-icon")
+
+        # hide shadow while icon is pressed
+    def mousePressEvent(self, event):
+        self.graphicsEffect().setEnabled(False)
+        QToolButton.mousePressEvent(self,event)
+
+    def mouseReleaseEvent(self, event):
+        self.graphicsEffect().setEnabled(True)
+        QToolButton.mouseReleaseEvent(self,event)
+
         # the main icon grid
 class IconGrid(QWidget):
     def __init__(self, apps, cat):
@@ -389,16 +410,10 @@ class IconGrid(QWidget):
 
     # create an icon with label
     def createIcon(self, iconfile=None, on_click=None, appname=None, executable=None):
-        button = QToolButton()
+        button = AppButton()
 
-        shadow = QGraphicsDropShadowEffect(button)
-        shadow.setOffset(QPointF(3,3))
-        button.setGraphicsEffect(shadow)
-
-        button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        button.setProperty("executable", executable)
-        button.setObjectName("launcher-icon")
         button.setText(appname)
+        button.setProperty("executable", executable)
 
         if iconfile:
             pix = QPixmap(iconfile)
@@ -439,7 +454,6 @@ class IconGrid(QWidget):
         # if this is not the first page then there's a prev button
         if self.current_page > 0:
             # the prev button is always icon 0 on screen
-            # but = self.createSimpleIcon("prev", self.do_prev)
             but = self.createIcon(os.path.join(BASE, "prev.png"), self.do_prev)
             self.addIcon(but, 0)
 
