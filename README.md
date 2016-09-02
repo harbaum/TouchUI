@@ -1,4 +1,4 @@
-# TouchUI
+# ![Logo](https://raw.githubusercontent.com/harbaum/TouchUI/master/screenshots/logo.png) TouchUI
 
 The TouchUI was initially started as part of the [ftcommunity-TXT
 project](https://github.com/ftCommunity/ftcommunity-TXT).  It has now
