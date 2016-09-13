@@ -269,8 +269,29 @@ class TouchMessageBox(TouchDialog):
         vbox.addStretch()
         self.centralWidget.setLayout(vbox)
 
+# the touch input context can later be used to implement a on-screen
+# keyboard. Example:
+# http://doc.qt.io/qt-4.8/qt-tools-inputpanel-example.html
+class TouchInputContext(QInputContext):
+    def __init__(self,parent):
+        QInputContext.__init__(self,parent)
+
+    def reset(self):
+        pass
+
+    def filterEvent(self, event):
+
+        if(event.type() == QEvent.RequestSoftwareInputPanel):
+            return True
+
+        elif(event.type() == QEvent.CloseSoftwareInputPanel):
+            return True
+
+        return False
+
 class TouchApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
+        self.setInputContext(TouchInputContext(self))
         TouchSetStyle(self)
 

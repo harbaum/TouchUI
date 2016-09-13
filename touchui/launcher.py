@@ -609,9 +609,9 @@ class TcpServer(QTcpServer):
         pass
         
 
-class FtcGuiApplication(QApplication):
+class FtcGuiApplication(TouchApplication):
     def __init__(self, args):
-        QApplication.__init__(self, args)
+        TouchApplication.__init__(self, args)
         # load stylesheet from the same place the script was loaded from
         self.setStyleSheet( "file:///" + BASE + "/themes/" + THEME + "/style.qss")
 
