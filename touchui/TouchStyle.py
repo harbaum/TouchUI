@@ -272,9 +272,31 @@ class TouchMessageBox(TouchDialog):
 # the touch input context can later be used to implement a on-screen
 # keyboard. Example:
 # http://doc.qt.io/qt-4.8/qt-tools-inputpanel-example.html
+
+class TouchKeyboard(TouchDialog):
+    def __init__(self,parent = None):
+        TouchDialog.__init__(self, "Input", parent)
+
 class TouchInputContext(QInputContext):
+    def keyboard_present():
+        # on the (non-arm) desktop always return False to force 
+        # on screen keyboard
+        if platform.machine() != "armv7l":
+            print("Forcing on screen keyboard on non-arm device")
+            return False
+
+        try:
+            for i in os.listdir("/dev/input/by-id"):
+                if i[-4:] == "-kbd":
+                    return True
+        except:
+            print("No linux USB subsystem accessible")    
+
+        return False
+
     def __init__(self,parent):
         QInputContext.__init__(self,parent)
+        self.keyboard = TouchKeyboard()
 
     def reset(self):
         pass
@@ -282,8 +304,12 @@ class TouchInputContext(QInputContext):
     def filterEvent(self, event):
 
         if(event.type() == QEvent.RequestSoftwareInputPanel):
+            self.keyboard.show()
             return True
 
+            # the keyboard always overlays the entire sceen.
+            # Thus we don't close it via the event but from the
+            # panels own close button
         elif(event.type() == QEvent.CloseSoftwareInputPanel):
             return True
 
@@ -292,6 +318,11 @@ class TouchInputContext(QInputContext):
 class TouchApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
-        self.setInputContext(TouchInputContext(self))
+        if not TouchInputContext.keyboard_present():
+            # disabled while not finished
+            #self.setInputContext(TouchInputContext(self))
+            pass
+        else:
+            print("Physical keyboard detected")
         TouchSetStyle(self)
 
