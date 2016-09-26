@@ -275,8 +275,114 @@ class TouchMessageBox(TouchDialog):
 # http://doc.qt.io/qt-4.8/qt-tools-inputpanel-example.html
 
 class TouchKeyboard(TouchDialog):
+    text_changed = pyqtSignal(str)
+
+    keys_tab = [ "A-O", "P-Z", "0-9" ]
+    keys_upper = [
+        ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","Aa" ],
+        ["P","Q","R","S","T","U","V","W","X","Y","Z",".",","," ","_","Aa" ],
+        ["0","1","2","3","4","5","6","7","8","9","+","-","*","/","#","$" ]
+    ]
+    keys_lower = [
+        ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","Aa" ],
+        ["p","q","r","s","t","u","v","w","x","y","z",":",";","!","?","Aa" ],
+        ["0","1","2","3","4","5","6","7","8","9","+","-","*","/","#","$" ]
+    ]
+
+    caps = True
+
     def __init__(self,parent = None):
         TouchDialog.__init__(self, "Input", parent)
+
+        edit = QWidget()
+        edit.hbox = QHBoxLayout()
+        edit.hbox.setContentsMargins(0,0,0,0)
+
+        self.line = QLineEdit()
+        self.line.setProperty("nopopup", True)
+        self.line.setAlignment(Qt.AlignCenter)
+        edit.hbox.addWidget(self.line)
+        but = QPushButton("<")
+        but.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        but.clicked.connect(self.key_erase)
+        edit.hbox.addWidget(but)
+
+        edit.setLayout(edit.hbox)
+        self.layout.addWidget(edit)
+
+        self.tab = QTabWidget()
+
+        if self.caps: keys = self.keys_upper
+        else:         keys = self.keys_lower
+        for a in range(3):
+            page = QWidget()
+            page.grid = QGridLayout()
+            page.grid.setContentsMargins(0,0,0,0)
+
+            cnt = 0
+            for i in keys[a]:
+                if i == "Aa":
+                    but = QPushButton("^")
+                    #pix = QPixmap(os.path.join(LOCAL_PATH, "caps.png"))
+                    #icn = QIcon(pix)
+                    #but.setIcon(icn)
+                    #but.setIconSize(pix.size())
+                    but.clicked.connect(self.caps_changed)
+                else:
+                    but = QPushButton(i)
+                    but.clicked.connect(self.key_pressed)
+
+                but.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
+                page.grid.addWidget(but,cnt/4,cnt%4)
+                cnt+=1
+
+            page.setLayout(page.grid)
+            self.tab.addTab(page, self.keys_tab[a])
+
+        self.tab.tabBar().setExpanding(True);
+        self.tab.tabBar().setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
+        self.layout.addWidget(self.tab)
+
+    def focus(self, str):
+        self.line.setText(str) 
+        self.line.setFocus()  # restore focus
+        self.line.deselect()
+
+    def key_erase(self):
+        self.line.setText(self.line.text()[:-1]) 
+        self.line.setFocus()  # restore focus
+
+    def key_pressed(self):
+        self.line.setText(self.line.text() + self.sender().text())
+        self.line.setFocus()  # restore focus
+
+        # user pressed the caps button. Exchange all button texts
+    def caps_changed(self):
+        self.line.setFocus()  # restore focus
+
+        # default is not caps locked
+        try:
+            self.caps = not self.caps
+        except AttributeError:
+            self.caps = True
+
+        if self.caps:  keys = self.keys_upper
+        else:          keys = self.keys_lower
+
+        # exchange all characters
+        for i in range(self.tab.count()):
+            gw = self.tab.widget(i)
+            gl = gw.layout()
+            for j in range(gl.count()):
+                w = gl.itemAt(j).widget()
+                if keys[i][j] != "Aa":
+                    w.setText(keys[i][j]);
+
+    def close(self):
+        # user has close the input dialog. Sent updated string 
+        # to invoking widget
+        TouchDialog.close(self)
+        self.text_changed.emit(self.line.text())
 
 class TouchInputContext(QInputContext):
     def keyboard_present():
@@ -297,7 +403,7 @@ class TouchInputContext(QInputContext):
 
     def __init__(self,parent):
         QInputContext.__init__(self,parent)
-        self.keyboard = TouchKeyboard()
+        self.keyboard = None
 
     def reset(self):
         pass
@@ -305,6 +411,25 @@ class TouchInputContext(QInputContext):
     def filterEvent(self, event):
 
         if(event.type() == QEvent.RequestSoftwareInputPanel):
+            if self.focusWidget().property("nopopup"):
+                print("ignoring keyboard widget itself")
+                return True
+
+            if not self.keyboard:
+                self.keyboard = TouchKeyboard()
+                self.keyboard.text_changed[str].connect(self.on_text_changed)
+
+            text = ""
+            self.widget = self.focusWidget()
+            if self.widget.inherits("QLineEdit"):
+                text = self.widget.text()
+            elif self.widget.inherits("QTextEdit"):
+                text = self.widget.toPlainText()
+            else:
+                print("Unsupported widget:", self.widget)
+
+            self.keyboard.focus(text)
+
             self.keyboard.show()
             return True
 
@@ -316,12 +441,18 @@ class TouchInputContext(QInputContext):
 
         return False
 
+    def on_text_changed(self, str):
+        if self.widget.inherits("QLineEdit"):
+            self.widget.setText(str)
+        elif self.widget.inherits("QTextEdit"):
+            self.widget.setText(str)
+
 class TouchApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
         if not TouchInputContext.keyboard_present():
             # disabled while not finished
-            #self.setInputContext(TouchInputContext(self))
+            # self.setInputContext(TouchInputContext(self))
             pass
         else:
             print("Physical keyboard detected")
