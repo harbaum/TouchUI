@@ -270,26 +270,83 @@ class TouchMessageBox(TouchDialog):
         vbox.addStretch()
         self.centralWidget.setLayout(vbox)
 
-# the touch input context can later be used to implement a on-screen
-# keyboard. Example:
-# http://doc.qt.io/qt-4.8/qt-tools-inputpanel-example.html
-
+# simple on-screen-keyboard to be used on devices without physical
+# keyboard attached
 class TouchKeyboard(TouchDialog):
+    # a pushbutton that additionally shows a second small label
+    # in subscript
+    class KbdButton(QPushButton):
+        SUBSCRIPT_SCALE = 0.5
+
+        def __init__(self, t, s, parent = None):
+            if t == s:
+                QPushButton.__init__(self, t, parent)
+                self.sub = None
+            else:
+                QPushButton.__init__(self, t + " ", parent)
+                self.sub = s
+
+        def setText(self, t, s):
+            if t == s:
+                QPushButton.setText(self, t)
+                self.sub = None
+            else:
+                QPushButton.setText(self, t + " ")
+                self.sub = s
+
+        def paintEvent(self, event):
+            QPushButton.paintEvent(self, event)
+
+            if self.sub:
+                painter = QPainter()
+                painter.begin(self)
+                painter.setPen(QColor("#fcce04"))
+
+                # half the normal font size
+                font = painter.font()
+                if font.pointSize() > 0:
+                    font.setPointSize(font.pointSize() * self.SUBSCRIPT_SCALE)
+                else:
+                    font.setPixelSize(font.pixelSize() * self.SUBSCRIPT_SCALE)
+                    
+                painter.setFont(font)
+
+                # draw the time at the very right
+                painter.drawText(self.contentsRect().adjusted(0,3,-5,-3), Qt.AlignRight, self.sub)
+            
+                painter.end()
+
+    # a subclassed QLineEdit that grabs focus once it has
+    # been drawn for the first time
+    class FocusLineEdit(QLineEdit):
+        def __init__(self,parent = None):
+            QLineEdit.__init__(self, parent)
+            self.init = False
+
+        def paintEvent(self, event):
+            QLineEdit.paintEvent(self, event)
+            if not self.init:
+                self.setFocus()  # restore focus
+                self.init = True
+
+        def reset(self):
+            self.init = False
+
     text_changed = pyqtSignal(str)
 
     keys_tab = [ "A-O", "P-Z", "0-9" ]
     keys_upper = [
         ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","Aa" ],
         ["P","Q","R","S","T","U","V","W","X","Y","Z",".",","," ","_","Aa" ],
-        ["0","1","2","3","4","5","6","7","8","9","+","-","*","/","#","$" ]
+        ["=","!",'"',"§","$","%","&","/","(",")","*","_","'","°",">","Aa" ]
     ]
     keys_lower = [
         ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","Aa" ],
         ["p","q","r","s","t","u","v","w","x","y","z",":",";","!","?","Aa" ],
-        ["0","1","2","3","4","5","6","7","8","9","+","-","*","/","#","$" ]
+        ["0","1","2","3","4","5","6","7","8","9","+","-","#","^","<","Aa" ]
     ]
 
-    caps = True
+    caps = False
 
     def __init__(self,parent = None):
         TouchDialog.__init__(self, "Input", parent)
@@ -298,11 +355,12 @@ class TouchKeyboard(TouchDialog):
         edit.hbox = QHBoxLayout()
         edit.hbox.setContentsMargins(0,0,0,0)
 
-        self.line = QLineEdit()
+        self.line = self.FocusLineEdit()
         self.line.setProperty("nopopup", True)
         self.line.setAlignment(Qt.AlignCenter)
         edit.hbox.addWidget(self.line)
-        but = QPushButton("<")
+        but = QPushButton(" ")
+        but.setObjectName("osk_erase")
         but.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         but.clicked.connect(self.key_erase)
         edit.hbox.addWidget(but)
@@ -312,29 +370,30 @@ class TouchKeyboard(TouchDialog):
 
         self.tab = QTabWidget()
 
-        if self.caps: keys = self.keys_upper
-        else:         keys = self.keys_lower
+        if self.caps: 
+            keys = self.keys_upper
+            subs = self.keys_lower
+        else:         
+            keys = self.keys_lower
+            subs = self.keys_upper
+
         for a in range(3):
             page = QWidget()
             page.grid = QGridLayout()
             page.grid.setContentsMargins(0,0,0,0)
 
             cnt = 0
-            for i in keys[a]:
-                if i == "Aa":
-                    but = QPushButton("^")
-                    #pix = QPixmap(os.path.join(LOCAL_PATH, "caps.png"))
-                    #icn = QIcon(pix)
-                    #but.setIcon(icn)
-                    #but.setIconSize(pix.size())
+            for cnt in range(len(keys[a])):
+                if keys[a][cnt] == "Aa":
+                    but = QPushButton()
+                    but.setObjectName("osk_caps")
                     but.clicked.connect(self.caps_changed)
                 else:
-                    but = QPushButton(i)
+                    but = self.KbdButton(keys[a][cnt], subs[a][cnt])
                     but.clicked.connect(self.key_pressed)
 
                 but.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
                 page.grid.addWidget(but,cnt/4,cnt%4)
-                cnt+=1
 
             page.setLayout(page.grid)
             self.tab.addTab(page, self.keys_tab[a])
@@ -343,17 +402,16 @@ class TouchKeyboard(TouchDialog):
         self.tab.tabBar().setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
         self.layout.addWidget(self.tab)
 
-    def focus(self, str):
-        self.line.setText(str) 
-        self.line.setFocus()  # restore focus
-        self.line.deselect()
+    def focus(self, str, cpos):
+        self.line.setText(str)
+        self.line.setCursorPosition(cpos)
 
     def key_erase(self):
-        self.line.setText(self.line.text()[:-1]) 
+        self.line.backspace()
         self.line.setFocus()  # restore focus
 
     def key_pressed(self):
-        self.line.setText(self.line.text() + self.sender().text())
+        self.line.insert(self.sender().text()[0])
         self.line.setFocus()  # restore focus
 
         # user pressed the caps button. Exchange all button texts
@@ -366,8 +424,12 @@ class TouchKeyboard(TouchDialog):
         except AttributeError:
             self.caps = True
 
-        if self.caps:  keys = self.keys_upper
-        else:          keys = self.keys_lower
+        if self.caps:  
+            keys = self.keys_upper
+            subs = self.keys_lower
+        else:          
+            keys = self.keys_lower
+            subs = self.keys_upper
 
         # exchange all characters
         for i in range(self.tab.count()):
@@ -376,12 +438,13 @@ class TouchKeyboard(TouchDialog):
             for j in range(gl.count()):
                 w = gl.itemAt(j).widget()
                 if keys[i][j] != "Aa":
-                    w.setText(keys[i][j]);
+                    w.setText(keys[i][j], subs[i][j]);
 
     def close(self):
         # user has close the input dialog. Sent updated string 
         # to invoking widget
         TouchDialog.close(self)
+        self.line.reset()
         self.text_changed.emit(self.line.text())
 
 class TouchInputContext(QInputContext):
@@ -420,15 +483,18 @@ class TouchInputContext(QInputContext):
                 self.keyboard.text_changed[str].connect(self.on_text_changed)
 
             text = ""
+            cpos = 0
             self.widget = self.focusWidget()
             if self.widget.inherits("QLineEdit"):
                 text = self.widget.text()
+                cpos = self.widget.cursorPosition() 
             elif self.widget.inherits("QTextEdit"):
                 text = self.widget.toPlainText()
+                cpos = self.widget.textCursor().position()
             else:
                 print("Unsupported widget:", self.widget)
 
-            self.keyboard.focus(text)
+            self.keyboard.focus(text, cpos)
 
             self.keyboard.show()
             return True
@@ -452,7 +518,7 @@ class TouchApplication(QApplication):
         QApplication.__init__(self, args)
         if not TouchInputContext.keyboard_present():
             # disabled while not finished
-            # self.setInputContext(TouchInputContext(self))
+            self.setInputContext(TouchInputContext(self))
             pass
         else:
             print("Physical keyboard detected")
