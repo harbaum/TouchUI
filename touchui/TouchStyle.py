@@ -21,8 +21,7 @@ if TXT:
 
     MULTI_LANGUAGE_SUPPORT = True
     CONFIG_FILE = '/media/sdcard/data/config.conf'
-    except Exception as e:
-        raise
+    
 STYLE_NAME = "themes/default/style.qss"
 
 # window size used on PC
