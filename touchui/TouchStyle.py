@@ -9,8 +9,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 # enable special features for the FT-TXT
-TXT = False
+TXT = True
 MULTI_LANGUAGE_SUPPORT = False
+CONFIG_FILE = ''
 if TXT:
     # TXT values
     INPUT_EVENT_DEVICE = "/dev/input/event1"
@@ -21,7 +22,7 @@ if TXT:
 
     MULTI_LANGUAGE_SUPPORT = True
     CONFIG_FILE = '/media/sdcard/data/config.conf'
-    
+
 STYLE_NAME = "themes/default/style.qss"
 
 # window size used on PC
