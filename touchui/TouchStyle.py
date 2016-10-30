@@ -536,5 +536,5 @@ class Language():
         if os.path.isfile(CONFIG_FILE):
             config = configparser.RawConfigParser()
             config.read(CONFIG_FILE)
-            self.language = manifest.get('general', 'language')
+            self.language = config.get('general', 'language')
             print(self.language)
