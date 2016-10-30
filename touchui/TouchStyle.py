@@ -533,8 +533,29 @@ class Language():
         self.path = path
         self.default_language = default_language
 
-        if os.path.isfile(CONFIG_FILE):
+        try:
             config = configparser.RawConfigParser()
             config.read(CONFIG_FILE)
             self.language = config.get('general', 'language')
-            print(self.language)
+        except:
+            self.language = self.default_language
+
+        try:
+            self.global_error = False
+            self.translation = configparser.RawConfigParser()
+            self.translation.read(self.path)
+        except:
+            self.global_error = True
+
+    def get_string(self, key):
+        if self.global_error == False:
+            try:
+                return(self.translation.get(self.language, key))
+            except:
+                pass
+
+            try:
+                return(self.translation.get(self.default_language, key))
+            except:
+                pass
+        return('missingno')
