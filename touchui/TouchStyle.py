@@ -8,8 +8,9 @@ import struct, os, platform, socket
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-# enable special features for the FT-TXT
-TXT = False
+# enable special features for the Fischertechnik TXT
+# The TXT can be detected by the presence of /etc/fw-ver.txt
+TXT = os.path.isfile("/etc/fw-ver.txt")
 
 if TXT:
     # TXT values

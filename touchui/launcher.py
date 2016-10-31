@@ -384,24 +384,16 @@ class AppButton(QToolButton):
         QToolButton.mouseReleaseEvent(self,event)
 
         # the main icon grid
-class IconGrid(QWidget):
+class IconGrid(QStackedWidget):
     def __init__(self, apps, cat):
-        QWidget.__init__(self)
+        QStackedWidget.__init__(self)
 
         self.apps = apps
         self.current_apps = self.filterCategory(self.apps, cat)
-        self.current_page = 0
 
-        self.grid = QGridLayout()
-        self.grid.setSpacing(0)
-        self.grid.setContentsMargins(0,0,0,0)
-
-        # install event filter to catch first resize
         # event to know the final size when creating
         # the icon grid
         self.installEventFilter(self)
-
-        self.setLayout(self.grid)
 
     def eventFilter(self, obj, event):
         if event.type() == event.Resize:
@@ -409,18 +401,84 @@ class IconGrid(QWidget):
             # icon grid
             self.columns = int(self.width()/80)
             self.rows = int(self.height()/80)
-            self.addIcons()
+            self.createPages()
         return False
+
+    def createPages(self):
+        # remove all pages that might already be there
+        while self.count():
+            w = self.widget(self.count()-1)
+            self.removeWidget(w)
+            w.deleteLater()
+
+        icons_per_page = self.columns * self.rows
+        page = None
+
+        # create pages to hold every app
+        for app in self.current_apps:
+            # create a new page if necessary
+            if not page:
+                index = 0
+
+                # create grid widget for page
+                page = QWidget()
+                grid = QGridLayout()
+                grid.setSpacing(0)
+                grid.setContentsMargins(0,0,0,0)
+                page.setLayout(grid)
+
+                # if this isn't the first page, then add a "prev" arrow
+                if self.count():
+                    but = self.createIcon(os.path.join(BASE, "prev.png"), self.do_prev)
+                    grid.addWidget(but, 0, 0, Qt.AlignCenter)
+                    index = 1
+
+            # get app details
+            app_group, app_dir_name = os.path.split(app['dir'])
+            app_group_name = os.path.basename(app_group)
+            app_local_dir = os.path.join(app_group_name, app_dir_name)
+            executable = os.path.join(app_local_dir, app['exec'])
+
+            if 'managed' in app: managed = app['managed']
+            else:                managed = "Yes"
+
+            # use icon file if one is mentioned in the manifest
+            if 'icon' in app:    iconname = os.path.join(app['dir'], app['icon'])
+            else:                iconname = os.path.join(BASE, "icon.png")
+
+            # create a launch button for this app
+            but = self.createIcon(iconname, self.do_launch, app['name'], executable)
+            grid.addWidget(but, index/self.columns, index%self.columns, Qt.AlignCenter)
+
+            # check if this is the second last icon on page
+            # and if there are at least two more icons to be added. Then we need a
+            # "next page" arrow
+            if index == icons_per_page - 2:
+                if self.current_apps.index(app) < len(self.current_apps)-2:
+                    index = icons_per_page - 1
+                    but = self.createIcon(os.path.join(BASE, "next.png"), self.do_next)
+                    grid.addWidget(but, index/self.columns, index%self.columns, Qt.AlignCenter)
+
+            # advance position counters
+            index += 1
+            if index == icons_per_page:
+                self.addWidget(page)
+                page = None
+                   
+        # fill last page with empty icons
+        while index < icons_per_page:
+            self.addWidget(page)
+            empty = self.createIcon()
+            grid.addWidget(empty, index/self.columns, index%self.columns, Qt.AlignCenter)
+            index += 1
 
     # handler of the "next" button
     def do_next(self):
-        self.current_page += 1
-        self.addIcons()
+        self.setCurrentIndex(self.currentIndex()+1)
 
     # handler of the "prev" button
     def do_prev(self):
-        self.current_page -= 1
-        self.addIcons()
+        self.setCurrentIndex(self.currentIndex()-1)
 
     # create an icon with label
     def createIcon(self, iconfile=None, on_click=None, appname=None, executable=None):
@@ -439,86 +497,6 @@ class IconGrid(QWidget):
 
         return button
 
-    # add and icon to the grid. Remove any previous icon
-    def addIcon(self, w, index):
-        previtem = self.grid.itemAtPosition(index/self.columns, index%self.columns);
-        if previtem: previtem.widget().deleteLater()
-        self.grid.addWidget(w,index/self.columns, index%self.columns, Qt.AlignCenter)
-        
-
-    # add all icons to the grid
-    def addIcons(self):
-        iconnr = 0
-
-        page_size = self.columns * self.rows
-        icon_1st = 0
-        icon_last = page_size - 2   # the first page can hold 8 icons
-        if self.current_page > 0:
-            icon_1st += page_size - 1   # first page holds 8 icons
-            icon_last += page_size - 2  # the secong page holds 7 icons
-            if self.current_page > 1:   # all further pages hold 7 icons
-                icon_1st += (page_size-2)*(self.current_page-1)
-                icon_last += (page_size-2)*(self.current_page-1)
-
-        # if the current page is the last one then one more icon fits
-        # since no "next" arrow is needed
-        if len(self.current_apps) <= icon_last+2:
-            icon_last += 1
-
-        # if this is not the first page then there's a prev button
-        if self.current_page > 0:
-            # the prev button is always icon 0 on screen
-            but = self.createIcon(os.path.join(BASE, "prev.png"), self.do_prev)
-            self.addIcon(but, 0)
-
-        # scan through the list of all applications
-        for app in self.current_apps:
-            app_group, app_dir_name = os.path.split(app['dir'])
-            app_group_name = os.path.basename(app_group)
-            app_local_dir = os.path.join(app_group_name, app_dir_name)
-            executable = os.path.join(app_local_dir, app['exec'])
-
-            if 'managed' in app: managed = app['managed']
-            else:                managed = "Yes"
-
-            # use icon file if one is mentioned in the manifest
-            if 'icon' in app:    iconname = os.path.join(app['dir'], app['icon'])
-            else:                iconname = os.path.join(BASE, "icon.png")
-        
-            # check if this app is on the current page
-            if (iconnr >= icon_1st and iconnr <= icon_last):
-                # print("Paint page", page, "iconnr", iconnr)
-
-                # number of this icon in srceen
-                icon_on_screen = iconnr - icon_1st
-                if self.current_page > 0: icon_on_screen += 1
-
-                # set properties on element stored in grid to 
-                # allow network launch to get the executable name
-                # from it
-                but = self.createIcon(iconname, self.do_launch, app['name'], executable)
-                self.addIcon(but, icon_on_screen)
-
-            iconnr = iconnr + 1
-
-        # is there another page? Then display the "next" icon
-        # print("iconnr after paint", iconnr, "last", icon_last)
-        if iconnr > icon_last+1:
-            # print("Next PAGE")
-            but = self.createIcon(os.path.join(BASE, "next.png"), self.do_next)
-            # the next button is always icon 8 on screen
-            self.addIcon(but, page_size-1)
-            
-        # fill rest of grid with empty widgets
-        while iconnr < icon_last+1:
-            icon_on_screen = iconnr - icon_1st
-            if self.current_page > 0: icon_on_screen += 1
-
-            # print("Adding space for", icon_on_screen)
-            empty = self.createIcon()
-            self.addIcon(empty, icon_on_screen)
-            iconnr = iconnr + 1
-
         # filter all apps for the given category
     def filterCategory(self, apps, cat):
         if cat == "All":
@@ -534,9 +512,8 @@ class IconGrid(QWidget):
         return app_list
 
     def setCategory(self, cat):
-        self.current_page = 0
         self.current_apps = self.filterCategory(self.apps, cat)
-        self.addIcons()
+        self.createPages()
 
     def setApps(self, apps):
         self.apps = apps
