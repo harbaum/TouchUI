@@ -276,6 +276,7 @@ class AppDialog(TouchDialog):
         self.package_loader = PackageLoader(self.package_name)
         self.package_loader.result.connect(self.onResult)
         self.busy = BusyAnimation(self)
+        self.busy.show()
 
     def uninstall(self, name):
 
@@ -378,6 +379,7 @@ class AppListWidget(QListWidget):
         self.package_list_loader = PackageListLoader()
         self.package_list_loader.result.connect(self.onResult)
         self.busy = BusyAnimation(parent)
+        self.busy.show()
 
         # react on clicks
         self.itemClicked.connect(self.onItemClicked)

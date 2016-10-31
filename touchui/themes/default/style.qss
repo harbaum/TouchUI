@@ -206,6 +206,20 @@ QPushButton#menubut {
     height: 40px;
 }
 
+/* the erase button of the on-screen-keyboard */
+QPushButton#osk_erase {
+    image: url(osk_erase);
+    width: 32px;
+    height: 32px;
+}
+
+/* the caps button of the on-screen-keyboard */
+QPushButton#osk_caps {
+    image: url(osk_caps);
+    width: 32px;
+    height: 32px;
+}
+
 /* a flat button has no decoration at all */
 QPushButton:flat {
     border-style: none;  
