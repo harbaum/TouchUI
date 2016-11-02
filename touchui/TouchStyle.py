@@ -223,7 +223,20 @@ class TouchDialog(QDialog):
         self.centralWidget = QWidget()
         self.layout.addWidget(self.centralWidget)
 
-        self.setLayout(self.layout)        
+        self.setLayout(self.layout)
+
+    def updateParent(self, parent):
+        if TXT:
+            # search for a matching root parent widget
+            while parent and not (parent.inherits("TouchBaseWidget") or parent.inherits("TouchDialog")):
+                parent = parent.parent()
+
+            self.parent = parent
+
+            if parent:
+                parent.register(self)
+        
+            self.setParent(parent)
 
     def setCentralWidget(self,w):
         # remove the old central widget and add a new one
@@ -480,8 +493,10 @@ class TouchInputContext(QInputContext):
                 return True
 
             if not self.keyboard:
-                self.keyboard = TouchKeyboard()
+                self.keyboard = TouchKeyboard(self.focusWidget())
                 self.keyboard.text_changed[str].connect(self.on_text_changed)
+            else:
+                self.keyboard.updateParent(self.focusWidget())
 
             text = ""
             cpos = 0
