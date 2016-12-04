@@ -101,10 +101,9 @@ The most complicated message type on the control channel ist the `status` messag
 
 The io channel allows access to the canonical I/O streams of the app. The message types on the io channel are `stdin`, `stdout` and `stderr`, and all messages have an additional `msg` key with a string value.
 
-The launcher sends a `stdin` or `stderr` message for every line that the app writes to STDIN or STDERR, with `msg` set to the line written by the app. Note that the trailing `\n` (newline) character will not be included in the message.
+The launcher sends a `stdout` or `stderr` message for every line that the app writes to STDOUT or STDERR, with `msg` set to the line written by the app. Note that the trailing `\n` (newline) character will not be included in the message.
 
 Each `stdin` message sent by the client to the launcher is forwarded to the app on STDIN, followed by a `\n` (newline) character.
-
 
 #### The "debug" channel
 
