@@ -74,16 +74,20 @@ class TouchTitle(QLabel):
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.close = QPushButton(self)
         self.close.setObjectName("closebut")
+        self.parent=parent
         self.close.clicked.connect(parent.close)
         self.close.move(self.width()-40,self.height()/2-20)
         self.installEventFilter(self)
         self.menubut = None
+        self.confbut = None
 
     def eventFilter(self, obj, event):
         if event.type() == event.Resize:
             self.close.move(self.width()-40,self.height()/2-20)
             if self.menubut:
                 self.menubut.move(8,self.height()/2-20)
+            if self.confbut:
+                self.confbut.move(8,self.height()/2-20)
         return False
 
     def addMenu(self):
@@ -93,6 +97,13 @@ class TouchTitle(QLabel):
         self.menu = TouchMenu(self.menubut)
         self.menubut.clicked.connect(self.menu.on_button_clicked)
         return self.menu
+   
+    def addConfirm(self):
+        self.confbut = QPushButton(self)
+        self.confbut.setObjectName("confirmbut")
+        self.confbut.move(8,self.height()/2-20)
+        self.confbut.clicked.connect(self.parent.close)
+        return self.confbut
         
 # The TXT does not use windows. Instead we just paint custom 
 # toplevel windows fullscreen. This widget is closed when the 
@@ -246,6 +257,9 @@ class TouchDialog(QDialog):
     def addMenu(self):
         return self.titlebar.addMenu()
 
+    def addConfirm(self):
+        return self.titlebar.addConfirm()
+    
     def unregister(self,child):
         if TXT:
             self.parent.unregister(child)
@@ -269,20 +283,187 @@ class TouchDialog(QDialog):
         QDialog.exec_(self)
 
 class TouchMessageBox(TouchDialog):
-    def __init__(self,str,parent):
-        TouchDialog.__init__(self,str,parent)
+    """ Versatile MessageBox for TouchUI
+        
+        msg = TouchMessageBox(title, parent)
+        
+        Methods:
+        
+        msg.addConfirm() adds confirm button at the left of the title
+        
+        msg.setText(text) sets message text, default ist empty string
+        msg.setPosButton(pos_button_text) sets text for positive button, default is None (no button)
+        msg.setNegButton(neg_button_text) sets text for negative button, default is None (no button)
+        
+        msg.setTextSize(size) set 4- big 3 - normal (default); 2 - smaller; 1 - smallest
+        msg.setBtnTextSize(size)
+        
+        msg.alignTop() aligns message text to top of the window
+        msg.alignCenter() centers text in window (default)
+        msg.alignBottom() aligns message text to bottom of the window
+    
+        msg.buttonsVertical(bool=True) arrange buttons on top of each other (True, default) or side-by-side (False)
+        msg.buttonsHorizontal(bool=True) see above...
+        
+        Return values:
+        
+        (success, text) = msg.exec_()
+        success == True if one of the buttons was used
+        success == False if MessageBox was closed by its close icon (top right)
+        
+        text == None if MessageBox was closed by its close icon
+        text == pos_button_text | neg_button_text depending on which button was clicked
+    """
+    
+    
+    def __init__(self,title,parent):
+        TouchDialog.__init__(self,title,parent)
+        
+        self.buttVert=True
+        self.align=2
+        self.textSize=3
+        self.btnTextSize=3
+        self.text=""
+        self.text_okay=None
+        self.text_deny=None
+        self.parent=parent
+        
+        self.result = ""
+        self.confbutclicked=False
+        
+        self.layout = QVBoxLayout()
+        
+    def buttonsVertical(self,flag=True):
+        self.buttVert=flag
+    
+    def buttonsHorizontal(self, flag=True):
+        self.buttVert=not flag
+        
+    def setText(self,text):
+        self.text=text
+    
+    def setPosButton(self,text):
+        self.text_okay=text
+    
+    def setNegButton(self,text):
+        self.text_deny=text
+    
+    def setTextSize(self,size):
+        if (size>0 and size<5): self.textSize=size
+        else: self.textSize=3
+    
+    def setBtnTextSize(self,size):
+        if (size>0 and size<5): self.btnTextSize=size
+        else: self.btnTextSize=3
+    
+    def alignTop(self):
+        self.align=1
+    def alignCenter(self):
+        self.align=2
+    def alignBottom(self):
+        self.align=3
+        
+    def on_select(self):
+        self.result = self.sender().text()
+        self.close()
+    
+    def addConfirm(self):
+        return self.titlebar.addConfirm()
+    
+    def exec_(self):
+        self.result = ""
+        
+        self.layout = QVBoxLayout()
+        
+        if self.align>1: self.layout.addStretch()
+        
+        # the message is:
+        
+        label = QLabel(self.text)
+        
+        if self.textSize==4:
+            label.setObjectName("biglabel")
+        elif self.textSize==3:
+            label.setObjectName("smalllabel")
+        elif self.textSize==2:
+            label.setObjectName("smallerlabel")
+        elif self.textSize==1:
+            label.setObjectName("tinylabel")
+            
+        label.setWordWrap(True)
+        label.setAlignment(Qt.AlignCenter)
+        
+        self.layout.addWidget(label)
+        
+        # the buttons are:
+        
+        if not (self.text_okay==None and self.text_deny==None):
+            butbox =QWidget()       
+            if self.buttVert: blayou = QVBoxLayout()
+            else: blayou = QHBoxLayout()
+            
+            butbox.setLayout(blayou)
+            
+            if self.buttVert: blayou.addStretch()
+        
+        if not self.text_okay==None:
+            but_okay = QPushButton(self.text_okay)
+            
+            if self.btnTextSize==4:
+                but_okay.setObjectName("biglabel")
+            elif self.btnTextSize==3:
+                but_okay.setObjectName("smalllabel")
+            elif self.btnTextSize==2:
+                but_okay.setObjectName("smallerlabel")
+            elif self.btnTextSize==1:
+                but_okay.setObjectName("tinylabel")
+            
+            but_okay.clicked.connect(self.on_select)
+        
+            blayou.addWidget(but_okay)
+        
+        if not self.text_deny==None:
+            but_deny = QPushButton(self.text_deny)
+            
+            if self.btnTextSize==4:
+                but_deny.setObjectName("biglabel")
+            elif self.btnTextSize==3:
+                but_deny.setObjectName("smalllabel")
+            elif self.btnTextSize==2:
+                but_deny.setObjectName("smallerlabel")
+            elif self.btnTextSize==1:
+                but_deny.setObjectName("tinylabel")
+            
+            but_deny.clicked.connect(self.on_select)
+        
+            blayou.addWidget(but_deny)
+        
+        # finalize layout
+        
+        if self.align<3: self.layout.addStretch()
+        
+        if not (self.text_okay==None and self.text_deny==None):
+            self.layout.addWidget(butbox)
+        self.centralWidget.setLayout(self.layout)
+        
+        # and run...
+        
+        TouchDialog.exec_(self)
+        if self.confbutclicked==True: return True, None
+        if self.text_okay==None and self.text_deny==None: return None,None
+        elif self.result=="": return False,None
+        else: return True,self.result
+    
+    def close(self):
+        
+        if TXT and self.parent:
+            self.parent.unregister(self)
 
-    def setText(self, text):
-        vbox = QVBoxLayout()
-        vbox.addStretch()
-        msg = QLabel(text)
-        msg.setObjectName("smalllabel")
-        msg.setWordWrap(True)
-        msg.setAlignment(Qt.AlignCenter)
-        vbox.addWidget(msg)
-        vbox.addStretch()
-        self.centralWidget.setLayout(vbox)
-
+        super(TouchDialog, self).close()
+        
+        if self.sender().objectName()=="confirmbut": self.confbutclicked=True
+        
+        
 # simple on-screen-keyboard to be used on devices without physical
 # keyboard attached
 class TouchKeyboard(TouchDialog):
