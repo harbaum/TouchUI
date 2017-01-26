@@ -206,6 +206,33 @@ QPushButton#menubut {
     height: 40px;
 }
 
+/* the alternate check button in the top right or left window corner */
+QPushButton#checkbut {
+    image: url(checkicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
+/* the optional confirm button in the top left window corner */
+QPushButton#confirmbut {
+    image: url(confirmicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
+/* the alternate cancel button in the top left window corner */
+QPushButton#cancelbut {
+    image: url(cancelicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
 /* the erase button of the on-screen-keyboard */
 QPushButton#osk_erase {
     image: url(osk_erase);
