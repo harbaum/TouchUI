@@ -164,9 +164,21 @@ QLabel {
     color: #fcce04;
 }
 
+/* a qlabel with big font */
+QLabel#biglabel {
+    font: 32px;
+    color: white;
+}
+
 /* a qlabel with smaller font */
 QLabel#smalllabel {
     font: 24px;
+    color: white;
+}
+
+/* a qlabel with even smaller font */
+QLabel#smallerlabel {
+    font: 18px;
     color: white;
 }
 
@@ -200,6 +212,33 @@ QPushButton#closebut {
 /* the menu button in the top left window corner */
 QPushButton#menubut {
     image: url(menuicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
+/* the alternate check button in the top right or left window corner */
+QPushButton#checkbut {
+    image: url(checkicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
+/* the optional confirm button in the top left window corner */
+QPushButton#confirmbut {
+    image: url(confirmicon);
+    border-style: none; 
+    background: none;
+    width: 32px;
+    height: 40px;
+}
+
+/* the alternate cancel button in the top left window corner */
+QPushButton#cancelbut {
+    image: url(cancelicon);
     border-style: none; 
     background: none;
     width: 32px;
@@ -246,6 +285,30 @@ QPushButton:pressed {
     background-color: rgba(255, 255, 255, 40);
     border-style: inset;
     color: lightgrey;
+}
+
+/* a qpushbutton with big font */
+QPushButton#biglabel {
+    font: 32px;
+    color: white;
+}
+
+/* a qpushbutton with smaller font */
+QPushButton#smalllabel {
+    font: 24px;
+    color: white;
+}
+
+/* a qpushbutton with even smaller font */
+QPushButton#smallerlabel {
+    font: 18px;
+    color: white;
+}
+
+/* a qpushbutton with an even smaller font */
+QPushButton#tinylabel {
+    font-size: 12px;
+    color: white;
 }
 
 QToolButton {
