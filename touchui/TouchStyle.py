@@ -4,6 +4,8 @@
 # additional functionality to communicate with the app launcher and
 # the like
 
+TouchStyle_version = 1.3
+
 import struct, os, platform, socket
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -299,6 +301,9 @@ class TouchMessageBox(TouchDialog):
         msg.addConfirm() adds confirm button at the left of the title
         msg.setCancelButton() changes style of the close icon to cancel icon
         
+        msg.addPixmap(QPixmap) adds a QPixmap to be shown on top of the message text
+        msg.setPixmapBelow() places the pixmap below the text (inbetween text and buttons), defalt is above the text
+        
         msg.setText(text) sets message text, default ist empty string
         msg.setPosButton(pos_button_text) sets text for positive button, default is None (no button)
         msg.setNegButton(neg_button_text) sets text for negative button, default is None (no button)
@@ -316,7 +321,7 @@ class TouchMessageBox(TouchDialog):
         Return values:
         
         (success, text) = msg.exec_()
-        success == True if one of the buttons was used
+        success == True if one of the buttons or the confirm button was used
         success == False if MessageBox was closed by its close icon (top right)
         
         text == None if MessageBox was closed by its close icon
@@ -331,6 +336,8 @@ class TouchMessageBox(TouchDialog):
         self.align=2
         self.textSize=3
         self.btnTextSize=3
+        self.pixmap=None
+        self.pmapalign=1
         self.text=""
         self.text_okay=None
         self.text_deny=None
@@ -339,8 +346,12 @@ class TouchMessageBox(TouchDialog):
         self.result = ""
         self.confbutclicked=False
         
-        self.layout = QVBoxLayout()
-        
+    def addPixmap(self, pmap: QPixmap):
+        self.pixmap=pmap
+    
+    def setPixmapBelow(self):
+        self.pmapalign=2
+    
     def buttonsVertical(self,flag=True):
         self.buttVert=flag
     
@@ -380,25 +391,49 @@ class TouchMessageBox(TouchDialog):
         
         self.layout = QVBoxLayout()
         
+        # the pixmap ist (in case of pmapalign=1
+        
+        if self.pixmap and self.pmapalign==1:
+            ph = QHBoxLayout()
+            ph.addStretch()
+            p = QLabel()
+            p.setPixmap(self.pixmap)
+            ph.addWidget(p)
+            ph.addStretch()
+            self.layout.addLayout(ph)
+            
+        # text horiontal alignment in vbox
+        
         if self.align>1: self.layout.addStretch()
         
         # the message is:
         
-        label = QLabel(self.text)
+        textfield = QTextEdit(self.text)#QLabel(self.text)
         
         if self.textSize==4:
-            label.setObjectName("biglabel")
+            textfield.setObjectName("biglabel")
         elif self.textSize==3:
-            label.setObjectName("smalllabel")
+            textfield.setObjectName("smalllabel")
         elif self.textSize==2:
-            label.setObjectName("smallerlabel")
+            textfield.setObjectName("smallerlabel")
         elif self.textSize==1:
-            label.setObjectName("tinylabel")
-            
-        label.setWordWrap(True)
-        label.setAlignment(Qt.AlignCenter)
+            textfield.setObjectName("tinylabel")
+
+        textfield.setAlignment(Qt.AlignCenter)
+        textfield.setReadOnly(True)
+        self.layout.addWidget(textfield)
         
-        self.layout.addWidget(label)
+        # the pixmap ist (in case of pmapalign=1
+        
+        if self.pixmap and self.pmapalign==2:
+            ph = QHBoxLayout()
+            ph.addStretch()
+            p = QLabel()
+            p.setPixmap(self.pixmap)
+            ph.addWidget(p)
+            ph.addStretch()
+            self.layout.addLayout(ph)
+        
         
         # the buttons are:
         
@@ -449,6 +484,7 @@ class TouchMessageBox(TouchDialog):
         
         if not (self.text_okay==None and self.text_deny==None):
             self.layout.addWidget(butbox)
+        
         self.centralWidget.setLayout(self.layout)
         
         # and run...
@@ -640,7 +676,6 @@ class TouchKeyboard(TouchDialog):
         self.line.reset()
         if self.sender().objectName()=="confirmbut":
             self.text_changed.emit(self.line.text())
-        else: self.text_changed.emit("")
 
 class TouchInputContext(QInputContext):
     def keyboard_present():
