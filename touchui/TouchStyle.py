@@ -104,6 +104,9 @@ class TouchTitle(QLabel):
         self.confbut.move(8,self.height()/2-20)
         self.confbut.clicked.connect(self.parent.close)
         return self.confbut
+    
+    def setCancelButton(self):
+        self.close.setObjectName("cancelbut")
         
 # The TXT does not use windows. Instead we just paint custom 
 # toplevel windows fullscreen. This widget is closed when the 
@@ -260,6 +263,9 @@ class TouchDialog(QDialog):
     def addConfirm(self):
         return self.titlebar.addConfirm()
     
+    def setCancelButton(self):
+        return self.titlebar.setCancelButton()
+    
     def unregister(self,child):
         if TXT:
             self.parent.unregister(child)
@@ -273,6 +279,7 @@ class TouchDialog(QDialog):
             self.parent.unregister(self)
 
         super(TouchDialog, self).close()
+        if self.sender().objectName()=="confirmbut": self.confbutclicked=True
         
         # TXT windows are always fullscreen
     def exec_(self):
@@ -290,6 +297,7 @@ class TouchMessageBox(TouchDialog):
         Methods:
         
         msg.addConfirm() adds confirm button at the left of the title
+        msg.setCancelButton() changes style of the close icon to cancel icon
         
         msg.setText(text) sets message text, default ist empty string
         msg.setPosButton(pos_button_text) sets text for positive button, default is None (no button)
@@ -366,10 +374,7 @@ class TouchMessageBox(TouchDialog):
     def on_select(self):
         self.result = self.sender().text()
         self.close()
-    
-    def addConfirm(self):
-        return self.titlebar.addConfirm()
-    
+     
     def exec_(self):
         self.result = ""
         
@@ -453,16 +458,7 @@ class TouchMessageBox(TouchDialog):
         if self.text_okay==None and self.text_deny==None: return None,None
         elif self.result=="": return False,None
         else: return True,self.result
-    
-    def close(self):
-        
-        if TXT and self.parent:
-            self.parent.unregister(self)
-
-        super(TouchDialog, self).close()
-        
-        if self.sender().objectName()=="confirmbut": self.confbutclicked=True
-        
+      
         
 # simple on-screen-keyboard to be used on devices without physical
 # keyboard attached
@@ -545,6 +541,9 @@ class TouchKeyboard(TouchDialog):
     def __init__(self,parent = None):
         TouchDialog.__init__(self, "Input", parent)
 
+        self.addConfirm()
+        self.setCancelButton()
+        
         edit = QWidget()
         edit.hbox = QHBoxLayout()
         edit.hbox.setContentsMargins(0,0,0,0)
@@ -639,7 +638,9 @@ class TouchKeyboard(TouchDialog):
         # to invoking widget
         TouchDialog.close(self)
         self.line.reset()
-        self.text_changed.emit(self.line.text())
+        if self.sender().objectName()=="confirmbut":
+            self.text_changed.emit(self.line.text())
+        else: self.text_changed.emit("")
 
 class TouchInputContext(QInputContext):
     def keyboard_present():

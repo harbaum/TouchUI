@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="34.133335"
-   height="34.133335"
+   width="32"
+   height="32"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.0 r"
-   sodipodi:docname="osk_caps.svg"
-   inkscape:export-filename="/home/tharbaum/tmp/private_stuff/txt/apps/wifi/caps.png"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="closeicon.svg"
+   inkscape:export-filename="/home/tharbaum/tmp/private_stuff/txt/closeicon.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -25,18 +25,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="19.15625"
      inkscape:cx="16"
-     inkscape:cy="13.964111"
+     inkscape:cy="16.026101"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1005"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-width="1280"
+     inkscape:window-height="1004"
+     inkscape:window-x="-2"
+     inkscape:window-y="-3"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
@@ -44,11 +44,7 @@
        empspacing="5"
        visible="true"
        enabled="true"
-       snapvisiblegridlinesonly="true"
-       originx="0"
-       originy="0"
-       spacingx="1.0666667"
-       spacingy="1.0666667" />
+       snapvisiblegridlinesonly="true" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -66,12 +62,12 @@
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-1088.3863)">
+     transform="translate(0,-1020.3622)">
     <path
-       style="fill:none;fill-opacity:1;stroke:#fcce04;stroke-width:4.26666689;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 11.733333,1120.3862 v -16 H 2.1333333 L 17.066667,1090.5196 32,1104.3862 h -9.6 v 16 z"
-       id="path2984"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m 16,1020.3622 c -8.8365563,0 -16,7.1634 -16,16 0,8.8366 7.1634437,16 16,16 8.836556,0 16,-7.1634 16,-16 0,-8.8366 -7.163444,-16 -16,-16 z m 7,6.9375 c 0.806586,-0.02 1.599496,0.5004 1.902621,1.2481 0.303126,0.7477 0.09626,1.6732 -0.496371,2.2207 l -5.59375,5.5937 5.59375,5.5938 c 0.871083,0.702 0.950352,2.1808 0.159302,2.9718 -0.79105,0.7911 -2.26985,0.7118 -2.971802,-0.1593 L 16,1039.1747 l -5.59375,5.5938 c -0.7393179,0.7597 -2.1101832,0.7652 -2.8555894,0.012 -0.7454062,-0.7537 -0.7247209,-2.1244 0.043089,-2.8553 l 5.59375,-5.5625 -5.59375,-5.5937 c -0.5503079,-0.5254 -0.7577555,-1.3807 -0.5093226,-2.0998 0.2484329,-0.7192 0.9395504,-1.264 1.6968226,-1.3377 0.062454,-0 0.1250458,-0 0.1875,0 0.5368705,0 1.068389,0.2351 1.4375,0.625 l 5.59375,5.5937 5.59375,-5.625 c 0.305756,-0.3182 0.719517,-0.5306 1.15625,-0.5937 0.08257,-0.016 0.166126,-0.026 0.25,-0.031 z"
+       id="path2987"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccc" />
+       sodipodi:nodetypes="ssssscscccscccscccscccccccc" />
   </g>
 </svg>
