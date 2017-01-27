@@ -422,7 +422,7 @@ class TouchMessageBox(TouchDialog):
             textfield.setObjectName("tinylabel")
 
         textfield.setAlignment(Qt.AlignCenter)
-        #textfield.setReadOnly(True)
+        textfield.setReadOnly(True)
         self.layout.addWidget(textfield)
         
         # the pixmap ist (in case of pmapalign=1
