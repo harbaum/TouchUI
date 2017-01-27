@@ -190,8 +190,32 @@ QLabel#tinylabel {
 
 /* textedit has a smaller font */
 QTextEdit {
-    background: rgba(0,0,0,0); 
+    background: rgba(0,0,0,0);
     font: 16px;
+}
+
+/* qtextedit with big font */
+QTextEdit#biglabel {
+    font: 32px;
+    color: white;
+}
+
+/* qtextedit with smaller font */
+QTextEdit#smalllabel {
+    font: 24px;
+    color: white;
+}
+
+/* qtextedit with even smaller font */
+QTextEdit#smallerlabel {
+    font: 18px;
+    color: white;
+}
+
+/* qtextedit with an even smaller font */
+QTextEdit#tinylabel {
+    font-size: 12px;
+    color: white;
 }
 
 /* having transparent aspects in qlineedit makes the line flash on input :-( */
