@@ -346,8 +346,6 @@ class TouchMessageBox(TouchDialog):
         self.result = ""
         self.confbutclicked=False
         
-        self.layout = QVBoxLayout()
-        
     def addPixmap(self, pmap: QPixmap):
         self.pixmap=pmap
     
@@ -486,6 +484,7 @@ class TouchMessageBox(TouchDialog):
         
         if not (self.text_okay==None and self.text_deny==None):
             self.layout.addWidget(butbox)
+        
         self.centralWidget.setLayout(self.layout)
         
         # and run...

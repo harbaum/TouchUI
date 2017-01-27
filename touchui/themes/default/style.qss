@@ -158,6 +158,14 @@ QTabWidget::pane {
   background: rgba(0,0,0,0); 
 }
 
+/* small font for qlistwidget */
+
+QListWidget#smalllabel {
+    font: 24px;
+    color: white;
+}
+
+
 /* qlabel has a transparent background and is in "TXT" orange */
 QLabel {
     background: none; 
@@ -222,6 +230,12 @@ QTextEdit#tinylabel {
 QLineEdit {
     background-color: #8EB6DC;
 /*    background-color: rgba(0,0,0,0);  */
+}
+
+/* qlineedit with smaller font */
+QLineEdit#smalllabel {
+    font: 24px;
+    color: white;
 }
 
 /* the close button in the top right window corner */
