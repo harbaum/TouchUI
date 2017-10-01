@@ -30,7 +30,7 @@ the rotate option like `dtoverlay=waveshare35a,rotate=0` to the file
 
 Furthermore the touchscreen also needs to be rotated. This is done in the 
 file `/etc/X11/xorg.conf.d/99-calibration.conf` by removing the `SwapAxes` option
-and by exachanging the Caöibration values of both axes:
+and by exachanging the Calibration values of both axes:
 
 ```
 Section "InputClass"
