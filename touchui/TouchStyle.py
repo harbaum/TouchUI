@@ -4,7 +4,7 @@
 # additional functionality to communicate with the app launcher and
 # the like
 
-TouchStyle_version = 1.3
+TouchStyle_version = 1.5
 
 import struct, os, platform, socket
 from PyQt4.QtCore import *
@@ -13,14 +13,39 @@ from PyQt4.QtGui import *
 # enable special features for the Fischertechnik TXT
 # The TXT can be detected by the presence of /etc/fw-ver.txt
 TXT = os.path.isfile("/etc/fw-ver.txt")
+# check for Fischertechnik community firmware app development settings
+DEV = os.path.isfile("/etc/ft-cfw-dev.txt")
+
+DEV_ORIENTATION="PORTRAIT"
+
+if DEV:
+    # versuche, die dev config zu lesen
+    try:
+        dcfile=open("/etc/ft-cfw-dev.txt","r")
+        for line in dcfile:
+            if not ("#" in line):
+                if "orientation" in line and "landscape" in line:
+                    DEV_ORIENTATION="LANDSCAPE"
+        dcfile.close()
+    except:
+        pass
+        
+        
+
+INPUT_EVENT_DEVICE = None
 
 if TXT:
     # TXT values
     INPUT_EVENT_DEVICE = "/dev/input/event1"
     INPUT_EVENT_CODE = 116
+else:
+    if 'TOUCHUI_BUTTON_INPUT' in os.environ:
+        (d, c) = os.environ.get('TOUCHUI_BUTTON_INPUT').split(':')
+        INPUT_EVENT_DEVICE = d
+        INPUT_EVENT_CODE = int(c)
 
-    INPUT_EVENT_FORMAT = 'llHHI'
-    INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FORMAT)
+INPUT_EVENT_FORMAT = 'llHHI'
+INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FORMAT)
 
 STYLE_NAME = "themes/default/style.qss"
 
@@ -30,8 +55,14 @@ if 'SCREEN' in os.environ:
     WIN_WIDTH = int(w)
     WIN_HEIGHT = int(h)
 else:
-    WIN_WIDTH = 240
-    WIN_HEIGHT = 320
+    if DEV_ORIENTATION == "LANDSCAPE":
+        WIN_WIDTH = 320
+        WIN_HEIGHT = 240
+    else:
+        WIN_WIDTH = 240
+        WIN_HEIGHT = 320
+
+
 
 # background thread to monitor power button event device
 class ButtonThread(QThread):
@@ -50,6 +81,12 @@ class ButtonThread(QThread):
                 self.emit( SIGNAL('power_button_released()'))   
             event = in_file.read(INPUT_EVENT_SIZE)
         return
+
+if INPUT_EVENT_DEVICE:
+    BUTTON_THREAD = ButtonThread()
+    BUTTON_THREAD.start()
+else:
+    BUTTON_THREAD = None
 
 def TouchSetStyle(self):
     # try to find style sheet and load it
@@ -116,7 +153,7 @@ class TouchTitle(QLabel):
 class TouchBaseWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        if platform.machine() == "armv7l":
+        if platform.machine()[0:3] == "arm" and not DEV:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -127,16 +164,13 @@ class TouchBaseWidget(QWidget):
         if TXT:
             self.subdialogs = []
 
-            # on arm (TXT) start thread to monitor power button
-            if platform.machine() == "armv7l":
-                self.buttonThread = ButtonThread()
-                self.connect( self.buttonThread, SIGNAL("power_button_released()"), self.close )
-                self.buttonThread.start()
-            
+        if BUTTON_THREAD:
+            self.connect( BUTTON_THREAD, SIGNAL("power_button_released()"), self.close )
+
         # TXT windows are always fullscreen on arm (txt itself)
         # and windowed else (e.g. on PC)
     def show(self):
-        if platform.machine() == "armv7l":
+        if platform.machine()[0:3] == "arm" and not DEV:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
@@ -220,7 +254,7 @@ class TouchDialog(QDialog):
         # the setFixedSize is only needed for testing on a desktop pc
         # the centralwidget name makes sure the themes background 
         # gradient is being used
-        if platform.machine() == "armv7l":
+        if platform.machine()[0:3] == "arm" and not DEV:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -281,11 +315,10 @@ class TouchDialog(QDialog):
             self.parent.unregister(self)
 
         super(TouchDialog, self).close()
-        if self.sender().objectName()=="confirmbut": self.confbutclicked=True
         
         # TXT windows are always fullscreen
     def exec_(self):
-        if platform.machine() == "armv7l":
+        if platform.machine()[0:3] == "arm" and not DEV:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
@@ -341,10 +374,14 @@ class TouchMessageBox(TouchDialog):
         self.text=""
         self.text_okay=None
         self.text_deny=None
-        self.parent=parent
         
-        self.result = ""
         self.confbutclicked=False
+        self.confirm=None
+        self.result = ""
+        
+    def addConfirm(self):
+        self.confirm = self.titlebar.addConfirm()
+        self.confirm.clicked.connect(self.on_confirm)
         
     def addPixmap(self, pmap: QPixmap):
         self.pixmap=pmap
@@ -381,6 +418,10 @@ class TouchMessageBox(TouchDialog):
         self.align=2
     def alignBottom(self):
         self.align=3
+        
+    def on_confirm(self):
+        self.confbutclicked=True
+        self.close()
         
     def on_select(self):
         self.result = self.sender().text()
@@ -491,9 +532,9 @@ class TouchMessageBox(TouchDialog):
         
         TouchDialog.exec_(self)
         if self.confbutclicked==True: return True, None
-        if self.text_okay==None and self.text_deny==None: return None,None
-        elif self.result=="": return False,None
-        else: return True,self.result
+        if self.result: return True, self.result
+        if self.confirm!=None: return False, None
+        return None,None
       
         
 # simple on-screen-keyboard to be used on devices without physical
@@ -577,7 +618,11 @@ class TouchKeyboard(TouchDialog):
     def __init__(self,parent = None):
         TouchDialog.__init__(self, "Input", parent)
 
-        self.addConfirm()
+        w=self.width()
+        h=self.height()
+        
+        conf=self.addConfirm()
+      
         self.setCancelButton()
         
         edit = QWidget()
@@ -622,7 +667,11 @@ class TouchKeyboard(TouchDialog):
                     but.clicked.connect(self.key_pressed)
 
                 but.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
-                page.grid.addWidget(but,cnt/4,cnt%4)
+                if w<h:
+                    page.grid.addWidget(but,cnt/4,cnt%4)
+                else:
+                    page.grid.addWidget(but,cnt/8,cnt%8)
+                cnt+=1
 
             page.setLayout(page.grid)
             self.tab.addTab(page, self.keys_tab[a])
@@ -630,7 +679,7 @@ class TouchKeyboard(TouchDialog):
         self.tab.tabBar().setExpanding(True);
         self.tab.tabBar().setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
         self.layout.addWidget(self.tab)
-
+    
     def focus(self, str, cpos):
         self.line.setText(str)
         self.line.setCursorPosition(cpos)
@@ -681,7 +730,7 @@ class TouchInputContext(QInputContext):
     def keyboard_present():
         # on the (non-arm) desktop always return False to force 
         # on screen keyboard
-        if platform.machine() != "armv7l":
+        if platform.machine()[0:3] != "arm":
             print("Forcing on screen keyboard on non-arm device")
             return False
 
@@ -702,6 +751,7 @@ class TouchInputContext(QInputContext):
         pass
 
     def filterEvent(self, event):
+
         if(event.type() == QEvent.RequestSoftwareInputPanel):
             if self.focusWidget().property("nopopup"):
                 return True
@@ -721,8 +771,6 @@ class TouchInputContext(QInputContext):
             elif self.widget.inherits("QTextEdit"):
                 text = self.widget.toPlainText()
                 cpos = self.widget.textCursor().position()
-            else:
-                print("Unsupported widget:", self.widget)
 
             self.keyboard.focus(text, cpos)
 
@@ -740,6 +788,8 @@ class TouchInputContext(QInputContext):
     def on_text_changed(self, str):
         if self.widget.inherits("QLineEdit"):
             self.widget.setText(str)
+            # a line edit emits the editingFinished signal when done
+            self.widget.editingFinished.emit()
         elif self.widget.inherits("QTextEdit"):
             self.widget.setText(str)
 
@@ -747,20 +797,7 @@ class TouchApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
         if not TouchInputContext.keyboard_present():
+            self.setAutoSipEnabled(True)
             self.setInputContext(TouchInputContext(self))
-            # for some reason qtembedded does not rise the RequestSoftwareInputPanel
-            # when the widget gets focus but only on the next click onto that widget.
-            # We thus install an event filter which fires a RequestSoftwareInputPanel
-            # event once the widget gets focus. This works better although the cursor
-            # is still at the text beginning at that moment
-            self.installEventFilter(self)
-        else:
-            print("Physical keyboard detected")
+
         TouchSetStyle(self)
-
-    def eventFilter(self, obj, event):
-        # check for focus events
-        if event.type() == event.FocusIn:
-            QApplication.sendEvent(obj, QEvent(QEvent.RequestSoftwareInputPanel))
-
-        return False
