@@ -485,7 +485,7 @@ class TouchMessageBox(TouchDialog):
             if self.buttVert:
                 blayou.addStretch()
 
-        if not self.text_okay == None:
+        if self.text_okay is not None:
             but_okay = QPushButton(self.text_okay)
 
             if self.btnTextSize == 4:
@@ -501,7 +501,7 @@ class TouchMessageBox(TouchDialog):
         
             blayou.addWidget(but_okay)
 
-        if not self.text_deny == None:
+        if self.text_deny is not None:
             but_deny = QPushButton(self.text_deny)
 
             if self.btnTextSize == 4:
