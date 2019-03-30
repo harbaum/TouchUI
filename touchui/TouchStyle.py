@@ -12,8 +12,9 @@ from PyQt4.QtGui import *
 
 # enable special features for the Fischertechnik TXT
 # The TXT can be detected by the presence of /etc/fw-ver.txt
-# Since the TX-Pi hasn't a hardware button, TXT MUST be ``False`` for the TX-Pi
-TXT = os.path.isfile("/etc/fw-ver.txt") and not os.path.isfile('/etc/tx-pi')
+TXT = os.path.isfile("/etc/fw-ver.txt")
+# TX-Pi?
+TXPI = os.path.isfile('/etc/tx-pi')
 # check for Fischertechnik community firmware app development settings
 DEV = os.path.isfile("/etc/ft-cfw-dev.txt")
 
@@ -36,15 +37,14 @@ if DEV:
 
 INPUT_EVENT_DEVICE = None
 
-if TXT:
+if TXT and not TXPI:  # The TX-Pi has no hardware button but is treated as TXT
     # TXT values
     INPUT_EVENT_DEVICE = "/dev/input/event1"
     INPUT_EVENT_CODE = 116
-else:
-    if 'TOUCHUI_BUTTON_INPUT' in os.environ:
-        (d, c) = os.environ.get('TOUCHUI_BUTTON_INPUT').split(':')
-        INPUT_EVENT_DEVICE = d
-        INPUT_EVENT_CODE = int(c)
+elif 'TOUCHUI_BUTTON_INPUT' in os.environ:
+    (d, c) = os.environ.get('TOUCHUI_BUTTON_INPUT').split(':')
+    INPUT_EVENT_DEVICE = d
+    INPUT_EVENT_CODE = int(c)
 
 INPUT_EVENT_FORMAT = 'llHHI'
 INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FORMAT)
