@@ -37,7 +37,7 @@ if DEV:
 
 INPUT_EVENT_DEVICE = None
 
-if TXT and not TXPI:
+if TXT and not TXPI:  # The TX-Pi has no hardware button but is treated as TXT
     # TXT values
     INPUT_EVENT_DEVICE = "/dev/input/event1"
     INPUT_EVENT_CODE = 116
