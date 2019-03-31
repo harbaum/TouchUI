@@ -7,11 +7,9 @@ import struct, os, platform, socket
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-
 __version__ = '1.7'
 
 TouchStyle_version = float(__version__)  # Kept for backward compatibility
-
 
 # enable special features for the Fischertechnik TXT
 # The TXT can be detected by the presence of /etc/fw-ver.txt
@@ -20,6 +18,8 @@ TXT = os.path.isfile("/etc/fw-ver.txt")
 TXPI = os.path.isfile('/etc/tx-pi')
 # check for Fischertechnik community firmware app development settings
 DEV = os.path.isfile("/etc/ft-cfw-dev.txt")
+# Do we use an ARM architecture?
+IS_ARM = platform.machine()[:3] == "arm"
 
 DEV_ORIENTATION = "PORTRAIT"
 
@@ -163,7 +163,7 @@ class TouchTitle(QLabel):
 class TouchBaseWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        if platform.machine()[0:3] == "arm" and not DEV:
+        if IS_ARM and not DEV:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -180,7 +180,7 @@ class TouchBaseWidget(QWidget):
     # TXT windows are always fullscreen on arm (txt itself)
     # and windowed else (e.g. on PC)
     def show(self):
-        if platform.machine()[0:3] == "arm" and not DEV:
+        if IS_ARM and not DEV:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
@@ -256,7 +256,7 @@ class TouchDialog(QDialog):
         # the setFixedSize is only needed for testing on a desktop pc
         # the centralwidget name makes sure the themes background 
         # gradient is being used
-        if platform.machine()[0:3] == "arm" and not DEV:
+        if IS_ARM and not DEV:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -315,7 +315,7 @@ class TouchDialog(QDialog):
         
     # TXT windows are always fullscreen
     def exec_(self):
-        if platform.machine()[0:3] == "arm" and not DEV:
+        if IS_ARM and not DEV:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
