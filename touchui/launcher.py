@@ -151,8 +151,8 @@ class ConfirmationDialog(PlainDialog):
 
 # The TXTs window title bar
 class CategoryWidget(QComboBox):
-    def __init__(self, categories, parent = None):
-        QComboBox.__init__(self, parent)
+    def __init__(self, categories, parent=None):
+        super(CategoryWidget, self).__init__(parent)
         self.setObjectName("titlebar")
         self.setCategories(categories)
         self.setContentsMargins(0, 0, 0, 0)
