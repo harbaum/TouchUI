@@ -74,6 +74,7 @@ class MessageDialog(PlainDialog):
         self.layout.addStretch()
         self.setLayout(self.layout)        
 
+
 class ConfirmationDialog(PlainDialog):
     """A fullscreen confirmation dialog.
 
@@ -176,6 +177,7 @@ class CategoryWidget(QComboBox):
             return True
         else:
             return False
+
 
 # the status bar at the screens top
 PLUGINS_DIR = "plugins"
