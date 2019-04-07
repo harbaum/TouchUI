@@ -161,7 +161,7 @@ class CategoryWidget(QComboBox):
         sel_idx = 0  # default category = 0 (All)
         for i in range(len(categories)):
             self.addItem(categories[i])
-            if categories[i] == prev: sel_idx = i+1
+            if categories[i] == prev: sel_idx = i + 1
 
         # if possible reselect the same category as before
         # "All" otherwise
@@ -235,7 +235,7 @@ class StatusBar(QWidget):
         for file in os.listdir(os.path.join(BASE, PLUGINS_DIR)):
             if file.endswith(".py"):
                 fname = os.path.splitext(os.path.basename(file))[0]
-                self.plugins[fname] = __import__(PLUGINS_DIR+"."+fname,
+                self.plugins[fname] = __import__(PLUGINS_DIR + "." + fname,
                                             globals(), locals(), ['object']) 
 
     def mousePressEvent(self, event):
@@ -421,7 +421,7 @@ class TextmodeDialog(TouchDialog):
                 output = os.read(self.fd, 100)
                 if output: self.append(str(output, "utf-8"))
 
-            if self.p.poll() != None:
+            if self.p.poll() is not None:
                 if self.p.returncode != 0:
                     self.txt.setTextColor(Qt.yellow)
                     self.txt.append("[" + str(self.p.returncode) + "]")
@@ -524,6 +524,7 @@ class IconGrid(QStackedWidget):
             app_local_dir = os.path.join(app_group_name, app_dir_name)
             executable = os.path.join(app_local_dir, app['exec'])
 
+            #TODO: managed seems to be unused. Remove?!
             if 'managed' in app:
                 managed = app['managed']
             else:
@@ -546,7 +547,7 @@ class IconGrid(QStackedWidget):
                 if self.current_apps.index(app) < len(self.current_apps)-2:
                     index = icons_per_page - 1
                     but = self.createIcon(os.path.join(BASE, "next.png"), self.do_next)
-                    grid.addWidget(but, index/self.columns, index % self.columns, Qt.AlignCenter)
+                    grid.addWidget(but, index / self.columns, index % self.columns, Qt.AlignCenter)
 
             # advance position counters
             index += 1
@@ -587,18 +588,13 @@ class IconGrid(QStackedWidget):
         return button
 
     # filter all apps for the given category
-    def filterCategory(self, apps, cat):
+    @staticmethod
+    def filterCategory(apps, cat):
         if cat == "All":
             return apps
-
         # extract all those that have a manifest file an check for
         # current category
-        app_list = []
-        for app in apps:
-            if 'category' in app and app['category'] == cat:
-                app_list.append(app)
-
-        return app_list
+        return [app for app in apps if 'category' in app and app['category'] == cat]
 
     def setCategory(self, cat):
         self.current_apps = self.filterCategory(self.apps, cat)
@@ -608,7 +604,7 @@ class IconGrid(QStackedWidget):
         self.apps = apps
 
     launch = pyqtSignal(str)
-    def do_launch(self,clicked):
+    def do_launch(self, clicked):
         self.launch.emit(str(self.sender().property("executable")))
 
 
