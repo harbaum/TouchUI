@@ -236,7 +236,7 @@ class StatusBar(QWidget):
         self.timer.start(2000) # replant timer in ms
 
         # scan for plugins
-        self.plugins = { }
+        self.plugins = {}
         for file in os.listdir(os.path.join(BASE, PLUGINS_DIR)):
             if file.endswith(".py"):
                 fname = os.path.splitext(os.path.basename(file))[0]
@@ -438,7 +438,6 @@ class TextmodeDialog(TouchDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(10)
-
         self.fd = fd
         self.p = p
 
@@ -846,7 +845,7 @@ class FtcGuiApplication(TouchApplication):
         app_dirs.sort(key=lambda tup: tup[0])
 
         # return a list of only the appinfo of the now sorted list
-        return ([x[1] for x in app_dirs])
+        return [x[1] for x in app_dirs]
 
     @pyqtSlot(str)
     def on_launch(self, name):
