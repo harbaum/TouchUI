@@ -151,7 +151,7 @@ class ConfirmationDialog(PlainDialog):
 
 # The TXTs window title bar
 class CategoryWidget(QComboBox):
-    def __init__(self,categories, parent = None):
+    def __init__(self, categories, parent = None):
         QComboBox.__init__(self, parent)
         self.setObjectName("titlebar")
         self.setCategories(categories)
@@ -165,7 +165,8 @@ class CategoryWidget(QComboBox):
         sel_idx = 0  # default category = 0 (All)
         for i in range(len(categories)):
             self.addItem(categories[i])
-            if categories[i] == prev: sel_idx = i + 1
+            if categories[i] == prev:
+                sel_idx = i + 1
 
         # if possible reselect the same category as before
         # "All" otherwise
@@ -198,7 +199,8 @@ class StatusPopup(QFrame):
         # get status messages from widgets
         for name in sorted(plugins):
             status = plugins[name].status()
-            if status: self.messages.append(plugins[name].name + ": " + status)
+            if status:
+                self.messages.append(plugins[name].name + ": " + status)
 
         self.setMinimumSize(parent.width(), bar.height())
         self.setMaximumSize(parent.width(), parent.height())
@@ -318,7 +320,7 @@ class TouchTopWidget(QWidget):
     def setCategories(self, categories):
         return self.category_w.setCategories(categories)
         
-    def addWidget(self,w):
+    def addWidget(self, w):
         self.layout.addWidget(w)
 
     # TXT windows are always fullscreen
@@ -424,7 +426,8 @@ class TextmodeDialog(TouchDialog):
             # select
             if select.select([self.fd], [], [], 0)[0]:
                 output = os.read(self.fd, 100)
-                if output: self.append(str(output, "utf-8"))
+                if output:
+                    self.append(str(output, "utf-8"))
 
             if self.p.poll() is not None:
                 if self.p.returncode != 0:
@@ -548,7 +551,7 @@ class IconGrid(QStackedWidget):
             # and if there are at least two more icons to be added. Then we need a
             # "next page" arrow
             if index == icons_per_page - 2:
-                if self.current_apps.index(app) < len(self.current_apps)-2:
+                if self.current_apps.index(app) < len(self.current_apps) - 2:
                     index = icons_per_page - 1
                     but = self.createIcon(os.path.join(BASE, "next.png"), self.do_next)
                     grid.addWidget(but, index / self.columns, index % self.columns, Qt.AlignCenter)
@@ -620,7 +623,7 @@ class TcpServer(QTcpServer):
     rescan = pyqtSignal()
     launch = pyqtSignal(str)
     message = pyqtSignal(str)
-    confirm = pyqtSignal(QTcpSocket,str)
+    confirm = pyqtSignal(QTcpSocket, str)
     get_app = pyqtSignal(QTcpSocket)
     stop_app = pyqtSignal()
     app_running = pyqtSignal(int)
@@ -657,7 +660,7 @@ class TcpServer(QTcpServer):
                     elif cmd == "msg":
                         self.message.emit(parm)
                     elif cmd == "confirm":
-                        self.confirm.emit(s,parm)
+                        self.confirm.emit(s, parm)
                     elif cmd == "quit":
                         s.write("Bye\n")
                         s.close()
