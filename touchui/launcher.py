@@ -6,10 +6,11 @@
 # (c) 2016 by Till Harbaum
 
 import configparser
-import sys, os, subprocess, threading
-import socketserver, select, time
+import sys, os, subprocess
+import select, time
+import platform
 
-from TouchStyle import *
+from TouchStyle import TouchDialog, TouchApplication
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
@@ -36,52 +37,55 @@ else:
     WIN_WIDTH = 240
     WIN_HEIGHT = 320
 
-# a simple dialog without any decorations (and this without
-# the user being able to get rid of it by himself)
+# Do we use an ARM architecture?
+IS_ARM = platform.machine()[:3] == "arm"
+
+
 class PlainDialog(QDialog):
+    """A simple dialog without any decorations (and this without
+    the user being able to get rid of it by himself)
+    """
     def __init__(self):
-        QDialog.__init__(self)
-        if platform.machine() == "armv7l":
+        super(PlainDialog, self).__init__()
+        if IS_ARM:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
             self.setFixedSize(WIN_WIDTH, WIN_HEIGHT)
-
         self.setObjectName("centralwidget")
 
     def exec_(self):
         QDialog.showFullScreen(self)
         QDialog.exec_(self)
 
-# A fullscreen message dialog. Currently only used to show the
-# "shutting down" message
-class MessageDialog(PlainDialog):
-    def __init__(self,str):
-        PlainDialog.__init__(self)
 
+class MessageDialog(PlainDialog):
+    """A fullscreen message dialog. Currently only used to show the
+    "shutting down" message
+    """
+    def __init__(self, str):
+        super(MessageDialog, self).__init__()
         self.layout = QVBoxLayout()
         self.layout.addStretch()
-
         lbl = QLabel(str)
-        lbl.setWordWrap(True);
+        lbl.setWordWrap(True)
         lbl.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(lbl)
-
         self.layout.addStretch()
         self.setLayout(self.layout)        
 
-# A fullscreen confirmation dialog. This can be called by an external
-# application via the built-in tcp server to e.g. get some user
-# feedback.
-class ConfirmationDialog(PlainDialog):
-    def __init__(self,sock,str):
-        self.sock = sock
 
+class ConfirmationDialog(PlainDialog):
+    """A fullscreen confirmation dialog.
+
+    This can be called by an external application via the built-in tcp server
+    to e.g. get some user feedback.
+    """
+    def __init__(self, sock, str):
+        super(ConfirmationDialog, self).__init__()
+        self.sock = sock
         strings = str.split("\\n")
         print("Str array", strings)
-        
-        PlainDialog.__init__(self)
-
         self.layout = QVBoxLayout()
         self.layout.addStretch()
 
@@ -96,8 +100,7 @@ class ConfirmationDialog(PlainDialog):
                 lbl.setObjectName("tinylabel")
             else:
                 lbl = QLabel(s)
-            
-            lbl.setWordWrap(True);
+            lbl.setWordWrap(True)
             lbl.setAlignment(Qt.AlignCenter)
             self.layout.addWidget(lbl)
             self.layout.addStretch()
@@ -145,13 +148,14 @@ class ConfirmationDialog(PlainDialog):
     def on_close_timer(self):
         self.close()         # close dialog
 
+
 # The TXTs window title bar
 class CategoryWidget(QComboBox):
-    def __init__(self,categories, parent = None):
-        QComboBox.__init__(self, parent)
+    def __init__(self, categories, parent=None):
+        super(CategoryWidget, self).__init__(parent)
         self.setObjectName("titlebar")
         self.setCategories(categories)
-        self.setContentsMargins(0,0,0,0)
+        self.setContentsMargins(0, 0, 0, 0)
 
     def setCategories(self, categories):
         prev = self.currentText()
@@ -161,7 +165,8 @@ class CategoryWidget(QComboBox):
         sel_idx = 0  # default category = 0 (All)
         for i in range(len(categories)):
             self.addItem(categories[i])
-            if categories[i] == prev: sel_idx = i+1
+            if categories[i] == prev:
+                sel_idx = i + 1
 
         # if possible reselect the same category as before
         # "All" otherwise
@@ -174,26 +179,28 @@ class CategoryWidget(QComboBox):
         else:
             return False
 
+
 # the status bar at the screens top
 PLUGINS_DIR = "plugins"
 
 class StatusPopup(QFrame):
     def __init__(self, plugins, bar, parent=None):
-        QFrame.__init__(self, parent)
+        super(StatusPopup, self).__init__(parent=parent)
         self.setObjectName("statuspopup")
         self.setVisible(True)
         self.setAutoFillBackground(True)
         self.setWindowFlags(Qt.Popup)
 
         # open popup centered on top of parent
-        self.move(parent.mapToGlobal(QPoint(0,bar.height())))
+        self.move(parent.mapToGlobal(QPoint(0, bar.height())))
 
-        self.messages = [ QDate.currentDate().toString() ]
+        self.messages = [QDate.currentDate().toString()]
 
         # get status messages from widgets
         for name in sorted(plugins):
             status = plugins[name].status()
-            if status: self.messages.append(plugins[name].name + ": " + status)
+            if status:
+                self.messages.append(plugins[name].name + ": " + status)
 
         self.setMinimumSize(parent.width(), bar.height())
         self.setMaximumSize(parent.width(), parent.height())
@@ -218,9 +225,10 @@ class StatusPopup(QFrame):
     def closeEvent(self, event):
         self.parent().main_widget.setGraphicsEffect(None)
 
+
 class StatusBar(QWidget):
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        super(StatusBar, self).__init__(parent=parent)
         self.setObjectName("statusbar")
         self.setVisible(True)
         self.setAutoFillBackground(True)
@@ -230,11 +238,11 @@ class StatusBar(QWidget):
         self.timer.start(2000) # replant timer in ms
 
         # scan for plugins
-        self.plugins = { }
+        self.plugins = {}
         for file in os.listdir(os.path.join(BASE, PLUGINS_DIR)):
             if file.endswith(".py"):
                 fname = os.path.splitext(os.path.basename(file))[0]
-                self.plugins[fname] = __import__(PLUGINS_DIR+"."+fname,
+                self.plugins[fname] = __import__(PLUGINS_DIR + "." + fname,
                                             globals(), locals(), ['object']) 
 
     def mousePressEvent(self, event):
@@ -251,7 +259,7 @@ class StatusBar(QWidget):
 
         # draw the time at the very right
         painter.drawText(QRect(QPoint(0,0), self.size()),
-              Qt.AlignRight, QTime.currentTime().toString("h:mm"));
+              Qt.AlignRight, QTime.currentTime().toString("h:mm"))
 
         # draw all plugin icons fromt he left
         x = 0
@@ -267,16 +275,18 @@ class StatusBar(QWidget):
 
     def update(self):
         self.repaint()
-       
-# The TXT/RPi does not use windows. Instead we just paint custom 
-# toplevel windows fullscreen
+
+
 class TouchTopWidget(QWidget):
-    def __init__(self,parent,categories):
-        QWidget.__init__(self)
+    """The TXT/RPi does not use windows. Instead we just paint custom
+    toplevel windows fullscreen
+    """
+    def __init__(self, parent, categories):
+        super(TouchTopWidget, self).__init__()
         # the setFixedSize is only needed for testing on a desktop pc
         # the centralwidget name makes sure the themes background 
         # gradient is being used
-        if platform.machine() == "armv7l":
+        if IS_ARM:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -287,7 +297,7 @@ class TouchTopWidget(QWidget):
         # create a vertical layout for the statusbar
         self.top_layout = QVBoxLayout()
         self.top_layout.setSpacing(0)
-        self.top_layout.setContentsMargins(0,0,0,0)
+        self.top_layout.setContentsMargins(0, 0, 0, 0)
 
         self.statusbar = StatusBar(self)
         self.top_layout.addWidget(self.statusbar)
@@ -296,7 +306,7 @@ class TouchTopWidget(QWidget):
         self.main_widget = QWidget()
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.category_w = CategoryWidget(categories, self.main_widget)
         self.category_w.activated[str].connect(parent.set_category)
@@ -310,16 +320,17 @@ class TouchTopWidget(QWidget):
     def setCategories(self, categories):
         return self.category_w.setCategories(categories)
         
-    def addWidget(self,w):
+    def addWidget(self, w):
         self.layout.addWidget(w)
 
-        # TXT windows are always fullscreen
+    # TXT windows are always fullscreen
     def show(self):
         # go fullscreen on arm, stay windowed otherwise
-        if platform.machine() == "armv7l":
+        if IS_ARM:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
+
 
 class BusyAnimation(QWidget):
     expired = pyqtSignal()
@@ -328,9 +339,9 @@ class BusyAnimation(QWidget):
         super(BusyAnimation, self).__init__(parent)
 
         self.resize(64, 64)
-        
+
         # center relative to parent
-        self.move(QPoint(parent.width()/2-32, parent.height()/2-32))
+        self.move(QPoint(parent.width() / 2 - 32, parent.height() / 2 - 32))
 
         self.step = 0
         self.app = app
@@ -358,7 +369,7 @@ class BusyAnimation(QWidget):
         painter.setPen(Qt.white)
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setBrush(QBrush(color))
-        painter.drawEllipse(0, 0, img.width()-1, img.height()-1)
+        painter.drawEllipse(0, 0, img.width() - 1, img.height() - 1)
         painter.end()
 
         return img
@@ -388,31 +399,26 @@ class BusyAnimation(QWidget):
         super(BusyAnimation, self).deleteLater()
 
     def paintEvent(self, event):
-
-        radius = min(self.width(), self.height())/2 - 16
+        radius = min(self.width(), self.height()) / 2 - 16
         painter = QPainter()
         painter.begin(self)
-
         painter.setRenderHint(QPainter.Antialiasing)
-
-        painter.translate(self.width()/2, self.height()/2)
+        painter.translate(self.width() / 2, self.height() / 2)
         painter.rotate(45)
         painter.rotate(self.step)
-        painter.drawImage(0,radius, self.bright)
+        painter.drawImage(0, radius, self.bright)
         for i in range(7):
             painter.rotate(45)
-            painter.drawImage(0,radius, self.dark)
-
+            painter.drawImage(0, radius, self.dark)
         painter.end()
 
+
 class TextmodeDialog(TouchDialog):
-    def __init__(self,title,parent):
-        TouchDialog.__init__(self, title, parent)
-        
+    def __init__(self, title, parent):
+        super(TextmodeDialog, self).__init__(title, parent)
         self.txt = QTextEdit()
         self.txt.setReadOnly(True)
         self.setCentralWidget(self.txt)
-
         self.p = None
 
     def update(self):
@@ -420,9 +426,10 @@ class TextmodeDialog(TouchDialog):
             # select
             if select.select([self.fd], [], [], 0)[0]:
                 output = os.read(self.fd, 100)
-                if output: self.append(str(output, "utf-8"))
+                if output:
+                    self.append(str(output, "utf-8"))
 
-            if self.p.poll() != None:
+            if self.p.poll() is not None:
                 if self.p.returncode != 0:
                     self.txt.setTextColor(Qt.yellow)
                     self.txt.append("[" + str(self.p.returncode) + "]")
@@ -430,11 +437,10 @@ class TextmodeDialog(TouchDialog):
                 self.p = None
                 self.timer.stop()
 
-    def poll(self, p,fd):
+    def poll(self, p, fd):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(10)
-        
         self.fd = fd
         self.p = p
 
@@ -446,52 +452,54 @@ class TextmodeDialog(TouchDialog):
         self.timer.stop()
         TouchDialog.close(self)
 
-        # a toolbutton with drop shadow
+
 class AppButton(QToolButton):
+    """A toolbutton with drop shadow
+    """
     def __init__(self):
-        QToolButton.__init__(self)
+        super(AppButton, self).__init__()
 
         shadow = QGraphicsDropShadowEffect(self)
-        shadow.setOffset(QPointF(3,3))
+        shadow.setOffset(QPointF(3, 3))
         self.setGraphicsEffect(shadow)
 
         self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         self.setObjectName("launcher-icon")
 
-        # hide shadow while icon is pressed
     def mousePressEvent(self, event):
+        """Hide shadow while icon is pressed.
+        """
         self.graphicsEffect().setEnabled(False)
-        QToolButton.mousePressEvent(self,event)
+        QToolButton.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         self.graphicsEffect().setEnabled(True)
-        QToolButton.mouseReleaseEvent(self,event)
+        QToolButton.mouseReleaseEvent(self, event)
 
-        # the main icon grid
+
 class IconGrid(QStackedWidget):
+    """The main icon grid.
+    """
     def __init__(self, apps, cat):
-        QStackedWidget.__init__(self)
-
+        super(IconGrid, self).__init__()
         self.apps = apps
         self.current_apps = self.filterCategory(self.apps, cat)
-
-        # event to know the final size when creating
-        # the icon grid
+        # event to know the final size when creating the icon grid
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
         if event.type() == event.Resize:
             # print("resize to", self.width(), self.height())
             # icon grid
-            self.columns = int(self.width()/80)
-            self.rows = int(self.height()/80)
+            self.columns = int(self.width() / 80)
+            self.rows = int(self.height() / 80)
             self.createPages()
         return False
 
     def createPages(self):
         # remove all pages that might already be there
         while self.count():
-            w = self.widget(self.count()-1)
+            w = self.widget(self.count() - 1)
             self.removeWidget(w)
             w.deleteLater()
 
@@ -508,7 +516,7 @@ class IconGrid(QStackedWidget):
                 page = QWidget()
                 grid = QGridLayout()
                 grid.setSpacing(0)
-                grid.setContentsMargins(0,0,0,0)
+                grid.setContentsMargins(0, 0, 0, 0)
                 page.setLayout(grid)
 
                 # if this isn't the first page, then add a "prev" arrow
@@ -523,25 +531,30 @@ class IconGrid(QStackedWidget):
             app_local_dir = os.path.join(app_group_name, app_dir_name)
             executable = os.path.join(app_local_dir, app['exec'])
 
-            if 'managed' in app: managed = app['managed']
-            else:                managed = "Yes"
+            #TODO: managed seems to be unused. Remove?!
+            if 'managed' in app:
+                managed = app['managed']
+            else:
+                managed = "Yes"
 
             # use icon file if one is mentioned in the manifest
-            if 'icon' in app:    iconname = os.path.join(app['dir'], app['icon'])
-            else:                iconname = os.path.join(BASE, "icon.png")
+            if 'icon' in app:
+                iconname = os.path.join(app['dir'], app['icon'])
+            else:
+                iconname = os.path.join(BASE, "icon.png")
 
             # create a launch button for this app
             but = self.createIcon(iconname, self.do_launch, app['name'], executable)
-            grid.addWidget(but, index/self.columns, index%self.columns, Qt.AlignCenter)
+            grid.addWidget(but, index / self.columns, index % self.columns, Qt.AlignCenter)
 
             # check if this is the second last icon on page
             # and if there are at least two more icons to be added. Then we need a
             # "next page" arrow
             if index == icons_per_page - 2:
-                if self.current_apps.index(app) < len(self.current_apps)-2:
+                if self.current_apps.index(app) < len(self.current_apps) - 2:
                     index = icons_per_page - 1
                     but = self.createIcon(os.path.join(BASE, "next.png"), self.do_next)
-                    grid.addWidget(but, index/self.columns, index%self.columns, Qt.AlignCenter)
+                    grid.addWidget(but, index / self.columns, index % self.columns, Qt.AlignCenter)
 
             # advance position counters
             index += 1
@@ -553,16 +566,16 @@ class IconGrid(QStackedWidget):
         while index < icons_per_page:
             self.addWidget(page)
             empty = self.createIcon()
-            grid.addWidget(empty, index/self.columns, index%self.columns, Qt.AlignCenter)
+            grid.addWidget(empty, index / self.columns, index % self.columns, Qt.AlignCenter)
             index += 1
 
     # handler of the "next" button
     def do_next(self):
-        self.setCurrentIndex(self.currentIndex()+1)
+        self.setCurrentIndex(self.currentIndex() + 1)
 
     # handler of the "prev" button
     def do_prev(self):
-        self.setCurrentIndex(self.currentIndex()-1)
+        self.setCurrentIndex(self.currentIndex() - 1)
 
     # create an icon with label
     def createIcon(self, iconfile=None, on_click=None, appname=None, executable=None):
@@ -581,19 +594,14 @@ class IconGrid(QStackedWidget):
 
         return button
 
-        # filter all apps for the given category
-    def filterCategory(self, apps, cat):
+    # filter all apps for the given category
+    @staticmethod
+    def filterCategory(apps, cat):
         if cat == "All":
             return apps
-
         # extract all those that have a manifest file an check for
         # current category
-        app_list = []
-        for app in apps:
-            if 'category' in app and app['category'] == cat:
-                app_list.append(app)
-
-        return app_list
+        return [app for app in apps if 'category' in app and app['category'] == cat]
 
     def setCategory(self, cat):
         self.current_apps = self.filterCategory(self.apps, cat)
@@ -603,28 +611,28 @@ class IconGrid(QStackedWidget):
         self.apps = apps
 
     launch = pyqtSignal(str)
-    def do_launch(self,clicked):
+    def do_launch(self, clicked):
         self.launch.emit(str(self.sender().property("executable")))
 
-# built-in TCP server so other programs can request a icon list refresh
-# or launch an app
+
 class TcpServer(QTcpServer):
+    """Built-in TCP server so other programs can request a icon list refresh
+    or launch an app.
+    """
     # singnals emitted by network server
     rescan = pyqtSignal()
     launch = pyqtSignal(str)
     message = pyqtSignal(str)
-    confirm = pyqtSignal(QTcpSocket,str)
+    confirm = pyqtSignal(QTcpSocket, str)
     get_app = pyqtSignal(QTcpSocket)
     stop_app = pyqtSignal()
     app_running = pyqtSignal(int)
 
     def __init__(self):
-        QTcpServer.__init__(self)
-
+        super(TcpServer, self).__init__()
         self.listen(QHostAddress("0.0.0.0"), CTRL_PORT)
         self.newConnection.connect(self.addConnection)
         self.connections = []
-        
 
     def addConnection(self):
         clientConnection = self.nextPendingConnection()
@@ -652,7 +660,7 @@ class TcpServer(QTcpServer):
                     elif cmd == "msg":
                         self.message.emit(parm)
                     elif cmd == "confirm":
-                        self.confirm.emit(s,parm)
+                        self.confirm.emit(s, parm)
                     elif cmd == "quit":
                         s.write("Bye\n")
                         s.close()
@@ -675,16 +683,13 @@ class TcpServer(QTcpServer):
 
 class FtcGuiApplication(TouchApplication):
     def __init__(self, args):
-        TouchApplication.__init__(self, args)
+        super(FtcGuiApplication, self).__init__(args)
         # load stylesheet from the same place the script was loaded from
-        self.setStyleSheet( "file:///" + BASE + "/themes/" + THEME + "/style.qss")
-
+        self.setStyleSheet("file:///" + BASE + "/themes/" + THEME + "/style.qss")
         self.app_process = None
-
         # create TCP server so other programs can request a icon list refresh
         # or launch an app
         self.tcpServer = TcpServer()
-
         # receive signals from network server
         self.tcpServer.rescan.connect(self.on_rescan)
         self.tcpServer.launch.connect(self.on_launch)
@@ -693,15 +698,13 @@ class FtcGuiApplication(TouchApplication):
         self.tcpServer.app_running.connect(self.on_app_running)
         self.tcpServer.get_app.connect(self.on_get_app)
         self.tcpServer.stop_app.connect(self.on_stop_app)
-
         self.addWidgets()
         self.exec_()        
 
     def app_is_running(self):
-        if self.app_process == None:
+        if self.app_process is None:
             return False
-
-        return self.app_process.poll() == None
+        return self.app_process.poll() is None
 
     # this signal is received when an app reports it
     # has been launched
@@ -713,7 +716,6 @@ class FtcGuiApplication(TouchApplication):
 
     def launch_textmode_app(self, executable, name):
         dialog = TextmodeDialog(name, self.w)
-
         self.app_executable = executable
         master_fd, slave_fd = pty.openpty()
         self.app_process = subprocess.Popen(str(executable), stdout=slave_fd, stderr=slave_fd)
@@ -802,12 +804,11 @@ class FtcGuiApplication(TouchApplication):
     # read a number of entries from the manifest and return them 
     # as a dictionary
     def manifest_import(self, manifest):
-        entries = ( "managed", "exec", "name", "category", "icon" );
-        appinfo = { }
+        entries = ("managed", "exec", "name", "category", "icon")
+        appinfo = {}
         for i in entries:
             if manifest.has_option('app', i):
                 appinfo[i] = manifest.get('app', i)
-
         return appinfo
 
     # return a list of directories containing apps
@@ -847,7 +848,7 @@ class FtcGuiApplication(TouchApplication):
         app_dirs.sort(key=lambda tup: tup[0])
 
         # return a list of only the appinfo of the now sorted list
-        return ([x[1] for x in app_dirs])
+        return [x[1] for x in app_dirs]
 
     @pyqtSlot(str)
     def on_launch(self, name):
@@ -858,9 +859,10 @@ class FtcGuiApplication(TouchApplication):
         app = next((app for app in self.apps if app["dir"] == app_dir), None)
 
         if app and 'exec' in app:
-            if 'managed' in app: managed = app['managed']
-            else:                managed = "Yes"
-                
+            if 'managed' in app:
+                managed = app['managed']
+            else:
+                managed = "Yes"
             self.launch_app(os.path.join(app_dir, app['exec']), managed, app['name'])
         else:
             print("Unable to launch", name)
@@ -868,17 +870,17 @@ class FtcGuiApplication(TouchApplication):
     def on_message(self, str):
         MessageDialog(str).exec_()
 
-    def on_confirm(self,sock,str):
-        ConfirmationDialog(sock,str).exec_()
+    def on_confirm(self, sock, str):
+        ConfirmationDialog(sock, str).exec_()
 
-    # read the manifet files of all installed apps and scan them
-    # for their category. Generate a unique set of categories from this
     def get_categories(self, apps):
+        """Read the manifest files of all installed apps and scan them
+        for their category. Generate a unique set of categories from this.
+        """
         categories = set()
         for i in apps:
             if "category" in i:
                 categories.add(i["category"])
-
         return sorted(categories)
 
     def set_category(self, cat):
@@ -899,7 +901,7 @@ class FtcGuiApplication(TouchApplication):
         self.icons = IconGrid(self.apps, self.current_category)
         self.icons.launch.connect(self.on_launch)
 
-        self.w.addWidget(self.icons);
+        self.w.addWidget(self.icons)
         self.w.show() 
  
 # Only actually do something if this script is run standalone, so we can test our 
