@@ -37,6 +37,9 @@ else:
     WIN_WIDTH = 240
     WIN_HEIGHT = 320
 
+# Do we use an ARM architecture?
+IS_ARM = platform.machine()[:3] == "arm"
+
 
 class PlainDialog(QDialog):
     """A simple dialog without any decorations (and this without
@@ -44,7 +47,7 @@ class PlainDialog(QDialog):
     """
     def __init__(self):
         super(PlainDialog, self).__init__()
-        if platform.machine() == "armv7l":
+        if IS_ARM:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -279,7 +282,7 @@ class TouchTopWidget(QWidget):
         # the setFixedSize is only needed for testing on a desktop pc
         # the centralwidget name makes sure the themes background 
         # gradient is being used
-        if platform.machine() == "armv7l":
+        if IS_ARM:
             size = QApplication.desktop().screenGeometry()
             self.setFixedSize(size.width(), size.height())
         else:
@@ -319,7 +322,7 @@ class TouchTopWidget(QWidget):
     # TXT windows are always fullscreen
     def show(self):
         # go fullscreen on arm, stay windowed otherwise
-        if platform.machine() == "armv7l":
+        if IS_ARM:
             QWidget.showFullScreen(self)
         else:
             QWidget.show(self)
