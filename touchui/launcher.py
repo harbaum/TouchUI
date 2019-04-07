@@ -6,11 +6,11 @@
 # (c) 2016 by Till Harbaum
 
 import configparser
-import sys, os, subprocess, threading
-import socketserver, select, time
+import sys, os, subprocess
+import select, time
 import platform
 
-from .TouchStyle import *
+from .TouchStyle import TouchDialog, TouchApplication
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
